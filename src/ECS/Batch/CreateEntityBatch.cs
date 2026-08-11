@@ -51,8 +51,8 @@ public sealed class CreateEntityBatch
     [Browse(Never)] internal            bool                autoReturn;         //  4
     [Browse(Never)] internal            bool                isReturned;         //  4
     [Browse(Never)] private             Archetype           archetype;          //  8
-    [Browse(Never)] private             Tags                tagsCreate;         // 32
-    [Browse(Never)] private             ComponentTypes      componentsCreate;   // 32
+    [Browse(Never)] private             Tags                tagsCreate;         // 40
+    [Browse(Never)] private             ComponentTypes      componentsCreate;   // 40
     #endregion
     
 #region general methods
@@ -145,8 +145,8 @@ public sealed class CreateEntityBatch
         var entity = new Entity(entityStore, id, revision);
         
         // -- add indexed components to indexes
-        var indexTypes = archetype.componentTypes.bitSet.l0 & indexTypesMask;
-        if (indexTypes != 0) {
+        var indexTypes = ComponentTypes.Intersect(archetype.componentTypes, IndexedComponentTypes);
+        if (!indexTypes.IsDefault()) {
             AddIndexedComponents(entity, indexTypes);
         }
         if (autoReturn) {
@@ -160,12 +160,10 @@ public sealed class CreateEntityBatch
         return entity;
     }
     
-    private readonly long indexTypesMask = EntityStoreBase.Static.EntitySchema.indexTypes.bitSet.l0;
+    private static readonly ComponentTypes IndexedComponentTypes = EntityStoreBase.Static.EntitySchema.indexTypes;
     
-    private void AddIndexedComponents(Entity entity, long indexTypes)
+    private void AddIndexedComponents(Entity entity, in ComponentTypes types)
     {
-        var types =  new ComponentTypes();
-        types.bitSet.l0 = indexTypes;
         foreach (var type in types) {
             archetype.heapMap[type.StructIndex].AddIndex(entity);
         }

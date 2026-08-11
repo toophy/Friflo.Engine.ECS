@@ -115,6 +115,7 @@ internal class EntityLinkRelations<TRelation> : GenericEntityRelations<TRelation
             sourceIds.RemoveAt(idPosition, linkIdsHeap);
             if (sourceIds.count == 0) {
                 linkMap.Remove(targetId);
+                EntityTypeTracking.RemoveLinked(store, targetId, structIndex);
             } else {
                 linkMap[targetId] = sourceIds;
             }

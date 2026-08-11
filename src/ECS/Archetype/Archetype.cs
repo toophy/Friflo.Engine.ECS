@@ -84,8 +84,8 @@ public sealed class Archetype
     [Browse(Never)] private             ArchetypeMemory     memory;         // 16   - count & length used to store components in chunks  
     // --- internal
     [Browse(Never)] internal readonly   int                 componentCount; //  4   - number of component types
-    [Browse(Never)] internal readonly   ComponentTypes      componentTypes; // 32   - component types of archetype
-    [Browse(Never)] internal readonly   Tags                tags;           // 32   - tags assigned to archetype
+    [Browse(Never)] internal readonly   ComponentTypes      componentTypes; // 40   - component types of archetype
+    [Browse(Never)] internal readonly   Tags                tags;           // 40   - tags assigned to archetype
     [Browse(Never)] internal readonly   ArchetypeKey        key;            //  8
     /// <remarks>Lookups on <see cref="heapMap"/>[] does not require a range check. See <see cref="EntitySchema.CheckStructIndex"/></remarks>
     [Browse(Never)] internal readonly   StructHeap[]        heapMap;        //  8   - never null. Length always = maxStructIndex. Used for heap lookup
@@ -314,7 +314,7 @@ public sealed class Archetype
     /// <see cref="TreeNode"/> components (child entities) are not copied.<br/>
     /// Otherwise, two different entities would have the same child entities.
     /// </summary>
-    internal static void CopyComponents(Archetype sourceArch, Archetype targetArch, in CopyContext context, long updateIndexTypes)
+    internal static void CopyComponents(Archetype sourceArch, Archetype targetArch, in CopyContext context, in ComponentTypes updateIndexTypes)
     {
         var sourceIndex = context.source.compIndex;
         var targetIndex = context.target.compIndex;

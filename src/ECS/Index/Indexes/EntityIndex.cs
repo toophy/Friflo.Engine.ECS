@@ -37,8 +37,8 @@ internal abstract class EntityIndex : GenericComponentIndex<Entity>
         if (oldTarget == target) {
             return;
         }
-        EntityIndexUtils.RemoveComponentValue (id, oldTarget, this);
-        EntityIndexUtils.AddComponentValue    (id, target,    this);
+        EntityIndexUtils.RemoveComponentValue (id, oldTarget, this, updateOwner: false);
+        EntityIndexUtils.AddComponentValue    (id, target,    this, updateOwner: false);
     }
     
     internal override void Remove<TComponent>(int id, StructHeap<TComponent> heap)
@@ -91,9 +91,10 @@ internal sealed class EntityIndex<TIndexedComponent> : EntityIndex
         idArray.RemoveAt(index, heap);
         if (idArray.Count == 0) {
             map.Remove(linkedEntity);
+            EntityTypeTracking.RemoveLinked(store, linkedEntity, structIndex);
         } else {
             map[linkedEntity] = idArray;
         }
-        store.nodes[id].isOwner &= ~indexBit;
+        EntityTypeTracking.RemoveOwner(store, id, structIndex);
     }
 }

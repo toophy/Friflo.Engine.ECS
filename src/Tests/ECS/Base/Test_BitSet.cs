@@ -120,7 +120,49 @@ public static class Test_BitSet
             IsFalse(bits.Has(n));
         }
     }
-    
+
+    [Test]
+    public static void Test_BitSet_Overflow_ValueSemantics()
+    {
+        var bits = new BitSet(new [] { 0, 255, 256, 257, 511, 512, 65_535 });
+        AreEqual(7, bits.GetBitCount());
+        foreach (var index in new [] { 0, 255, 256, 257, 511, 512, 65_535 }) {
+            IsTrue(bits.Has(index), $"missing bit: {index}");
+        }
+        IsFalse(bits.Has(192), "overflow bit must not alias the inline range");
+
+        var copy = bits;
+        copy.ClearBit(256);
+        copy.SetBit(1024);
+        IsTrue(bits.Has(256));
+        IsFalse(bits.Has(1024));
+        IsFalse(copy.Has(256));
+        IsTrue(copy.Has(1024));
+
+        var enumerated = new System.Collections.Generic.List<int>();
+        foreach (var index in bits) enumerated.Add(index);
+        CollectionAssert.AreEqual(new [] { 0, 255, 256, 257, 511, 512, 65_535 }, enumerated);
+
+        Throws<System.ArgumentOutOfRangeException>(() => bits.SetBit(-1));
+        Throws<System.ArgumentOutOfRangeException>(() => bits.SetBit(65_536));
+        Throws<System.ArgumentOutOfRangeException>(() => bits.Has(-1));
+        Throws<System.ArgumentOutOfRangeException>(() => bits.ClearBit(65_536));
+    }
+
+    [Test]
+    public static void Test_BitSet_Overflow_Equality()
+    {
+        var left  = new BitSet(new [] { 1, 256, 1024, 65_535 });
+        var right = new BitSet(new [] { 1, 256, 1024, 65_535 });
+        var other = new BitSet(new [] { 1, 256, 1025, 65_535 });
+
+        IsTrue(left.Equals(right));
+        IsTrue(left.Equals((object)right));
+        AreEqual(left.GetHashCode(), right.GetHashCode());
+        IsFalse(left.Equals(other));
+        IsFalse(left.Equals(null));
+    }
+
     [Test]
     public static void Test_BitSet_ForEach()
     {

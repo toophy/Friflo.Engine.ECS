@@ -38,8 +38,9 @@ internal sealed class ComponentWriter
     internal JsonValue Write(Entity entity, List<JsonValue> members, bool pretty)
     {
         var archetype = entity.archetype;
-        var relationTypesL0 = entity.store.nodes[entity.Id].isOwner & relationTypes.bitSet.l0;
-        if (entity.ComponentCount() == 0 && relationTypesL0 == 0) {
+        var ownerTypes = EntityTypeTracking.GetOwnerTypes(entity.store, entity.Id);
+        var entityRelationTypes = ComponentTypes.Intersect(ownerTypes, relationTypes);
+        if (entity.ComponentCount() == 0 && entityRelationTypes.IsDefault()) {
             return default;
         }
         var componentCount = 0;
@@ -65,9 +66,7 @@ internal sealed class ComponentWriter
             members?.AddMember(writer, start);
             componentCount++;
         }
-        var relationsTypes  = new ComponentTypes();
-        relationsTypes.bitSet.l0 = relationTypesL0;
-        foreach (var relationType in relationsTypes) {
+        foreach (var relationType in entityRelationTypes) {
             relationType.WriteRelations(this, entity);
             componentCount++;
         }

@@ -37,8 +37,8 @@ internal sealed class ValueStructIndex<TIndexedComponent,TValue>  : GenericCompo
             return;
         }
         var localMap  = entityMap;
-        DictionaryUtils.RemoveComponentValue (id, oldValue, localMap, this);
-        DictionaryUtils.AddComponentValue    (id, value,    localMap, this);
+        DictionaryUtils.RemoveComponentValue (id, oldValue, localMap, this, updateOwner: false);
+        DictionaryUtils.AddComponentValue    (id, value,    localMap, this, updateOwner: false);
     }
 
     internal override void Remove<TComponent>(int id, StructHeap<TComponent> heap)
@@ -61,11 +61,12 @@ internal sealed class ValueStructIndex<TIndexedComponent,TValue>  : GenericCompo
         }
         idArray.RemoveAt(index, heap);
         if (idArray.Count == 0) {
+            modified = true;
             map.Remove(value);
         } else {
             map[value] = idArray;
         }
-        store.nodes[id].isOwner &= ~indexBit;
+        EntityTypeTracking.RemoveOwner(store, id, structIndex);
     }
     #endregion
     

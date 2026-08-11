@@ -39,8 +39,8 @@ internal sealed class ValueClassIndex<TIndexedComponent,TValue> : GenericCompone
         if (EqualityComparer<TValue>.Default.Equals(oldValue , value)) {
             return;
         }
-        RemoveComponentValue (id, oldValue);
-        AddComponentValue    (id, value);
+        RemoveComponentValue (id, oldValue, updateOwner: false);
+        AddComponentValue    (id, value,    updateOwner: false);
     }
 
     internal override void Remove<TComponent>(int id, StructHeap<TComponent> heap)
@@ -51,49 +51,62 @@ internal sealed class ValueClassIndex<TIndexedComponent,TValue> : GenericCompone
     
     internal override void RemoveEntityFromIndex(int id, Archetype archetype, int compIndex)
     {
-        var map         = entityMap;
         var heap        = idHeap;
         var components  = ((StructHeap<TIndexedComponent>)archetype.heapMap[structIndex]).Components;
         TValue value    = components[compIndex].GetIndexedValue();
-        map.TryGetValue(value, out var idArray);
+        IdArray idArray;
+        if (value == null) {
+            idArray = nullValue;
+        } else {
+            entityMap.TryGetValue(value, out idArray);
+        }
         var idSpan  = idArray.GetSpan(heap, store);
         var index   = idSpan.IndexOf(id);
         if (index == -1) {
             StoreIndex.ThrowIndexedComponentValueNotFound<TIndexedComponent>();
         }
         idArray.RemoveAt(index, heap);
-        if (idArray.Count == 0) {
-            map.Remove(value);
+        if (value == null) {
+            nullValue = idArray;
+        } else if (idArray.Count == 0) {
+            modified = true;
+            entityMap.Remove(value);
         } else {
-            map[value] = idArray;
+            entityMap[value] = idArray;
         }
-        store.nodes[id].isOwner &= ~indexBit;
+        EntityTypeTracking.RemoveOwner(store, id, structIndex);
     }
     #endregion
     
 #region null handling
-    private void AddComponentValue(int id, in TValue value)
+    private void AddComponentValue(int id, in TValue value, bool updateOwner = true)
     {
         if (value != null) {
-            DictionaryUtils.AddComponentValue (id, value, entityMap, this);
+            DictionaryUtils.AddComponentValue(id, value, entityMap, this, updateOwner);
             return;
         }
         var heap    = idHeap;
         var idSpan  = nullValue.GetSpan(heap, store);
         if (idSpan.IndexOf(id) != -1) return; // unexpected. Better safe than sorry. Used belts with suspenders :)
+        if (updateOwner) {
+            EntityTypeTracking.AddOwner(store, id, structIndex);
+        }
         nullValue.Add(id, heap);
     }
-    
-    internal void RemoveComponentValue(int id, in TValue value)
+
+    internal void RemoveComponentValue(int id, in TValue value, bool updateOwner = true)
     {
         if (value != null) {
-            DictionaryUtils.RemoveComponentValue (id, value, entityMap, this);
+            DictionaryUtils.RemoveComponentValue(id, value, entityMap, this, updateOwner);
             return;
         }
         var heap    = idHeap;
         var idSpan  = nullValue.GetSpan(heap, store);
         var index   = idSpan.IndexOf(id);
         if (index == -1) return; // unexpected. Better safe than sorry. Used belts with suspenders :)
+        if (updateOwner) {
+            EntityTypeTracking.RemoveOwner(store, id, structIndex);
+        }
         nullValue.RemoveAt(index, heap);
     }
     #endregion

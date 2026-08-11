@@ -550,7 +550,7 @@ public sealed class CommandBuffer : ICommandBuffer
         intern.hasCommands          = true;
         intern.tagCommandsCount     = count + 1;
         ref var command     = ref intern.tagCommands[count];
-        command.tagIndex    = (byte)tagIndex;
+        command.tagIndex    = SchemaTypeIndex.ToUInt16(tagIndex, nameof(tagIndex));
         command.entityId    = entityId;
         command.change      = change;
     }
@@ -587,7 +587,7 @@ public sealed class CommandBuffer : ICommandBuffer
         intern.hasCommands          = true;
         intern.scriptCommandsCount  = count + 1;
         ref var command     = ref intern.scriptCommands[count];
-        command.scriptIndex = (byte)scriptIndex;
+        command.scriptIndex = SchemaTypeIndex.ToUInt16(scriptIndex, nameof(scriptIndex));
         command.action      = action;
         command.entityId    = entityId;
         command.script      = script;

@@ -16,7 +16,7 @@ internal abstract class ComponentCommands : IComponentStash
 {
     [Browse(Never)] internal            int             commandCount;       //  4
     [Browse(Never)] internal readonly   int             structIndex;        //  4
-    [Browse(Never)] internal readonly   long            indexMask;          //  8
+    [Browse(Never)] internal readonly   bool            hasIndex;           //  1
     
     
     public   abstract object   GetStashDebug();
@@ -27,9 +27,7 @@ internal abstract class ComponentCommands : IComponentStash
     
     internal ComponentCommands(int structIndex, Type indexType) {
         this.structIndex = structIndex;
-        if (indexType != null) {
-            indexMask = 1L << structIndex;
-        }
+        hasIndex = indexType != null;
     }
 }
 
@@ -68,7 +66,7 @@ internal sealed class ComponentCommands<T> : ComponentCommands, IComponentStash<
             if (archetype == null) {
                 throw EntityNotFound(command.ToString());
             }
-            if ((archetype.componentTypes.bitSet.l0 & indexMask) != 0) {
+            if (hasIndex && archetype.componentTypes.bitSet.Has(index)) {
                 RemoveIndexedComponent(playback, node, entityId);
             }
 #if NET6_0_OR_GREATER

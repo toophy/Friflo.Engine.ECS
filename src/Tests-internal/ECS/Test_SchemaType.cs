@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using Friflo.Engine.ECS;
 using NUnit.Framework;
@@ -12,6 +13,31 @@ namespace Internal.ECS {
 
 public static class Test_SchemaType
 {
+    [Test]
+    public static void Test_SchemaType_IndexCapacity()
+    {
+        AreEqual(1, SchemaTypeIndex.Next(0, "test"));
+        AreEqual(ushort.MaxValue, SchemaTypeIndex.Next(ushort.MaxValue - 1, "test"));
+        AreEqual(ushort.MaxValue, SchemaTypeIndex.ToUInt16(ushort.MaxValue, "index"));
+
+        Throws<InvalidOperationException>(() => SchemaTypeIndex.Next(ushort.MaxValue, "test"));
+        Throws<ArgumentOutOfRangeException>(() => SchemaTypeIndex.ToUInt16(-1, "index"));
+        Throws<ArgumentOutOfRangeException>(() => SchemaTypeIndex.ToUInt16(ushort.MaxValue + 1, "index"));
+    }
+
+    [Test]
+    public static void Test_SchemaType_DiscoveryOrder()
+    {
+        var types = new List<AssemblyType>();
+        AssemblyLoader.GetComponentTypes(typeof(Test_SchemaType).Assembly, 0, types);
+
+        for (var index = 1; index < types.Count; index++) {
+            var previous = types[index - 1].type.FullName;
+            var current = types[index].type.FullName;
+            LessOrEqual(string.CompareOrdinal(previous, current), 0);
+        }
+    }
+
     /// <summary>
     /// Ensure initialization of <see cref="ScriptInfo{T}.Index"/>.
     /// Especially if <see cref="Tags.Get{T}"/> is the first call in an application.  

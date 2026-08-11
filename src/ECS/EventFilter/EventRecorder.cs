@@ -104,7 +104,7 @@ public sealed class EventRecorder
         ref var ev      = ref AddEvent(componentEvents);
         ev.Id           = change.EntityId;
         ev.Action       = EntityEventAction.Added;
-        ev.TypeIndex    = (byte)change.StructIndex;
+        ev.TypeIndex    = change.StructIndex;
         ev.Kind         = SchemaTypeKind.Component;
     }
     
@@ -114,7 +114,7 @@ public sealed class EventRecorder
         ref var ev      = ref AddEvent(componentEvents);
         ev.Id           = change.EntityId;
         ev.Action       = EntityEventAction.Removed;
-        ev.TypeIndex    = (byte)change.StructIndex;
+        ev.TypeIndex    = change.StructIndex;
         ev.Kind         = SchemaTypeKind.Component;
     }
     
@@ -129,7 +129,7 @@ public sealed class EventRecorder
                 ref var ev      = ref AddEvent(tagEvents);
                 ev.Id           = change.EntityId;
                 ev.Action       = EntityEventAction.Added;
-                ev.TypeIndex    = (byte)tag.TagIndex;
+                ev.TypeIndex    = tag.TagIndex;
                 ev.Kind         = SchemaTypeKind.Tag;
             }
         }
@@ -142,7 +142,7 @@ public sealed class EventRecorder
                 ref var ev      = ref AddEvent(tagEvents);
                 ev.Id           = change.EntityId;
                 ev.Action       = EntityEventAction.Removed;
-                ev.TypeIndex    = (byte)tag.TagIndex;
+                ev.TypeIndex    = tag.TagIndex;
                 ev.Kind         = SchemaTypeKind.Tag;
             }
         }

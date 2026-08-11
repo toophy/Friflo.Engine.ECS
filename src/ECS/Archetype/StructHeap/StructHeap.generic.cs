@@ -86,7 +86,7 @@ internal sealed class StructHeapGen<T> : StructHeap<T>
         targetHeap.components[targetPos] = components[sourcePos];
     }
     
-    internal override void CopyComponent(int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, long updateIndexTypes)
+    internal override void CopyComponent(int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, in ComponentTypes updateIndexTypes)
     {
         if (typeof(T) == typeof(TreeNode)) {
             return;
@@ -105,9 +105,9 @@ internal sealed class StructHeapGen<T> : StructHeap<T>
         }
     }
     
-    private static void AddOrUpdateIndex(in T source, in T target, in Entity targetEntity, StructHeap<T> targetHeap, long updateIndexTypes)
+    private static void AddOrUpdateIndex(in T source, in T target, in Entity targetEntity, StructHeap<T> targetHeap, in ComponentTypes updateIndexTypes)
     {
-        if (((1 << StructInfo<T>.Index) & updateIndexTypes) == 0) {
+        if (!updateIndexTypes.bitSet.Has(StructInfo<T>.Index)) {
             StoreIndex.AddIndex(targetEntity.store, targetEntity.Id, source);
         } else {
             targetHeap.componentStash = target;

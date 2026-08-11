@@ -1,60 +1,90 @@
 ﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
-
 namespace Friflo.Engine.ECS.Utils;
 
 public struct BitSetEnumerator
 {
-    private readonly    long    l0;     //  8
-    private readonly    long    l1;     //  8
-    private readonly    long    l2;     //  8
-    private readonly    long    l3;     //  8
-    
-    private             long    lng;    //  8   - 64 bits
-    private             int     lngPos; //  4   - range: [0, 1, 2, 3, 4] - higher values are not assigned
-    private             int     curPos; //  4   - range: [0, ..., 255]
-    
-    internal BitSetEnumerator(in BitSet bitSet) {
-        l0  = bitSet.l0;
-        l1  = bitSet.l1;
-        l2  = bitSet.l2;
-        l3  = bitSet.l3;
-        lng = l0;
+    private readonly long l0;
+    private readonly long l1;
+    private readonly long l2;
+    private readonly long l3;
+    private readonly BitSetBlock[] overflow;
+
+    private long word;
+    private int wordIndex;
+    private int overflowIndex;
+    private int blockBase;
+    private int current;
+
+    internal BitSetEnumerator(in BitSet bitSet)
+    {
+        l0 = bitSet.l0;
+        l1 = bitSet.l1;
+        l2 = bitSet.l2;
+        l3 = bitSet.l3;
+        overflow = bitSet.GetOverflowBlocks();
+        word = l0;
+        wordIndex = 0;
+        overflowIndex = -1;
+        blockBase = 0;
+        current = 0;
     }
-    
-    /// <returns>the index of the current bit == 1. The index range is [0, ... , 255]</returns>
-    public readonly int Current => curPos;
-    
-    // --- IEnumerator
-    public void Reset() {
-        lng     = l0;
-        lngPos  = 0;
-        curPos  = 0;
+
+    /// <returns>The index of the current set bit.</returns>
+    public readonly int Current => current;
+
+    public void Reset()
+    {
+        word = l0;
+        wordIndex = 0;
+        overflowIndex = -1;
+        blockBase = 0;
+        current = 0;
     }
-    
+
     public bool MoveNext()
     {
-        while (true)
-        {
-            if (lng != 0) {
+        while (true) {
+            if (word != 0) {
 #if NETCOREAPP3_0_OR_GREATER
-                var bitPos  = System.Numerics.BitOperations.TrailingZeroCount(lng);
+                var bitPosition = System.Numerics.BitOperations.TrailingZeroCount(word);
 #else
-                var bitPos  = BitSet.TrailingZeroCount(lng);
+                var bitPosition = BitSet.TrailingZeroCount(word);
 #endif
-                lng        ^= 1L << bitPos;
-                curPos      = (lngPos << 6) + bitPos;
+                word ^= 1L << bitPosition;
+                current = blockBase + (wordIndex << 6) + bitPosition;
                 return true;
             }
-            switch (++lngPos) {
-            //  case 0      not possible: lngPos > 0
-                case 1:     lng = l1;   break;  // use break instead of continue to reach scope end for test coverage
-                case 2:     lng = l2;   break;
-                case 3:     lng = l3;   break;
-            //  case 4: == default     
-                default:    return false;
-            }
+            if (!MoveToNextWord()) return false;
         }
+    }
+
+    private bool MoveToNextWord()
+    {
+        if (wordIndex < 3) {
+            wordIndex++;
+            word = GetCurrentWord(wordIndex);
+            return true;
+        }
+
+        var blocks = overflow;
+        if (blocks == null || overflowIndex + 1 >= blocks.Length) return false;
+        overflowIndex++;
+        wordIndex = 0;
+        blockBase = blocks[overflowIndex].Index << 8;
+        word = blocks[overflowIndex].L0;
+        return true;
+    }
+
+    private readonly long GetCurrentWord(int index)
+    {
+        if (overflowIndex >= 0) return overflow[overflowIndex].GetWord(index);
+        return index switch {
+            0 => l0,
+            1 => l1,
+            2 => l2,
+            _ => l3,
+        };
     }
 }

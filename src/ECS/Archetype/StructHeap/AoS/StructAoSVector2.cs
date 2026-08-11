@@ -95,7 +95,7 @@ internal sealed class StructAoSVector2<T> : StructHeap<T>
         targetSoA.ComponentToAoS(GetComponentFromAoS(sourcePos), targetPos);
     }
     
-    internal override void CopyComponent(int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, long updateIndexTypes)
+    internal override void CopyComponent(int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, in ComponentTypes updateIndexTypes)
     {
         CopyComponentTo(sourcePos, targetHeap, targetPos);
     }

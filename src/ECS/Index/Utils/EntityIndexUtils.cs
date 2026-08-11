@@ -12,7 +12,7 @@ namespace Friflo.Engine.ECS.Index;
 /// </summary>
 internal static class EntityIndexUtils
 {
-    internal static void RemoveComponentValue(int id, int target, EntityIndex componentIndex)
+    internal static void RemoveComponentValue(int id, int target, EntityIndex componentIndex, bool updateOwner = true)
     {
         var map     = componentIndex.entityMap;
         var idHeap  = componentIndex.idHeap;
@@ -22,11 +22,12 @@ internal static class EntityIndexUtils
         if (index == -1) {
             return; // unexpected. Better safe than sorry. Used belts with suspenders :)
         }
-        var nodes           =  componentIndex.store.nodes;
-        int complement      = ~componentIndex.indexBit;
-        nodes[id].isOwner  &=  complement;
+        var store = componentIndex.store;
+        if (updateOwner) {
+            EntityTypeTracking.RemoveOwner(store, id, componentIndex.structIndex);
+        }
         if (ids.Count == 1) {
-            nodes[target].isLinked   &= complement;
+            EntityTypeTracking.RemoveLinked(store, target, componentIndex.structIndex);
             componentIndex.modified = true;
             map.Remove(target);
             return;
@@ -35,7 +36,7 @@ internal static class EntityIndexUtils
         map[target] = ids;
     }
     
-    internal static void AddComponentValue(int id, int target, EntityIndex componentIndex)
+    internal static void AddComponentValue(int id, int target, EntityIndex componentIndex, bool updateOwner = true)
     {
         var map     = componentIndex.entityMap;
         var idHeap  = componentIndex.idHeap;
@@ -44,11 +45,12 @@ internal static class EntityIndexUtils
         if (idSpan.IndexOf(id) != -1) {
             return; // unexpected. Better safe than sorry. Used belts with suspenders :)
         }
-        var nodes           = componentIndex.store.nodes;
-        int indexBit        = componentIndex.indexBit;
-        nodes[id].isOwner  |= indexBit;
+        var store = componentIndex.store;
+        if (updateOwner) {
+            EntityTypeTracking.AddOwner(store, id, componentIndex.structIndex);
+        }
         if (ids.Count == 0) {
-            nodes[target].isLinked   |= indexBit;
+            EntityTypeTracking.AddLinked(store, target, componentIndex.structIndex);
             componentIndex.modified = true;
         }
         ids.Add(id, idHeap);

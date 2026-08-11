@@ -22,16 +22,22 @@ namespace Friflo.Engine.ECS;
 /// </summary>
 [CLSCompliant(true)]
 [DebuggerTypeProxy(typeof(ComponentTypesDebugView))]
-public struct ComponentTypes : IEnumerable<ComponentType>
+public struct ComponentTypes : IEnumerable<ComponentType>, IEquatable<ComponentTypes>
 {
 #region public properties    
     /// <summary>Return the number of contained <see cref="IComponent"/>'s.</summary>
     public readonly int     Count       => bitSet.GetBitCount();
     public override string  ToString()  => GetString();
+    public override int     GetHashCode() => bitSet.GetHashCode();
+    public override bool    Equals(object other) => other is ComponentTypes componentTypes && Equals(componentTypes);
+    public bool             Equals(ComponentTypes other) => bitSet.Equals(other.bitSet);
+
+    public static bool      operator == (in ComponentTypes left, in ComponentTypes right) => left.Equals(right);
+    public static bool      operator != (in ComponentTypes left, in ComponentTypes right) => !left.Equals(right);
     #endregion
     
 #region interal field
-    internal        BitSet  bitSet;     // 32
+    internal        BitSet  bitSet;     // 40
     #endregion
 
 #region enumerator    
@@ -443,6 +449,16 @@ public struct ComponentTypes : IEnumerable<ComponentType>
     #endregion
     
 #region internal methods
+    internal readonly bool IsDefault()
+    {
+        return bitSet.IsDefault();
+    }
+
+    internal static ComponentTypes Intersect(in ComponentTypes left, in ComponentTypes right)
+    {
+        return new ComponentTypes { bitSet = BitSet.Intersect(left.bitSet, right.bitSet) };
+    }
+
     private string GetString() => AppendTo(new StringBuilder()).ToString();
     
     internal StringBuilder AppendTo(StringBuilder sb)
@@ -470,7 +486,7 @@ public struct ComponentTypes : IEnumerable<ComponentType>
 /// </summary>
 public struct ComponentTypesEnumerator : IEnumerator<ComponentType>
 {
-    internal                BitSetEnumerator    bitSetEnumerator;   // 48
+    internal                BitSetEnumerator    bitSetEnumerator;   // 64
     
     private static readonly ComponentType[]     Components = EntityStoreBase.Static.EntitySchema.components;
 

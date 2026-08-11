@@ -108,7 +108,7 @@ internal sealed class StructSoAVector4<T> : StructHeap<T>
         dst[targetPos + targetStride * 3]   = src[sourcePos + stride * 3];
     }
     
-    internal override void CopyComponent(int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, long updateIndexTypes)
+    internal override void CopyComponent(int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, in ComponentTypes updateIndexTypes)
     {
         CopyComponentTo(sourcePos, targetHeap, targetPos);
     }

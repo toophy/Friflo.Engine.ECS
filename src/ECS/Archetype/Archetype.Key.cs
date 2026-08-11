@@ -17,8 +17,8 @@ namespace Friflo.Engine.ECS;
 internal sealed class ArchetypeKey
 {
     // --- internal fields
-    internal                ComponentTypes  componentTypes; // 32   - components of an Archetype
-    internal                Tags            tags;           // 32   - tags of an Archetype
+    internal                ComponentTypes  componentTypes; // 40   - components of an Archetype
+    internal                Tags            tags;           // 40   - tags of an Archetype
     internal                int             hash;           //  4   - hash code from components & tags
     internal readonly       Archetype       archetype;      //  8   - the result of a key lookup
 

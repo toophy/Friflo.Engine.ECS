@@ -69,10 +69,10 @@ public sealed class  EntityBatch
     [Browse(Never)] internal readonly   EntityStoreBase     store;              //  8   - used only if owner == EntityStore
     [Browse(Never)] internal            int                 entityId;           //  4   - used only if owner == EntityStore
     [Browse(Never)] internal            BatchOwner          owner;              //  4
-    [Browse(Never)] internal            Tags                tagsAdd;            // 32
-    [Browse(Never)] internal            Tags                tagsRemove;         // 32
-    [Browse(Never)] internal            ComponentTypes      componentsAdd;      // 32
-    [Browse(Never)] internal            ComponentTypes      componentsRemove;   // 32
+    [Browse(Never)] internal            Tags                tagsAdd;            // 40
+    [Browse(Never)] internal            Tags                tagsRemove;         // 40
+    [Browse(Never)] internal            ComponentTypes      componentsAdd;      // 40
+    [Browse(Never)] internal            ComponentTypes      componentsRemove;   // 40
     #endregion
     
 #region general methods
