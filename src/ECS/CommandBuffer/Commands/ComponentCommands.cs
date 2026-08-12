@@ -2,6 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using static Friflo.Engine.ECS.ComponentChangedAction;
 using static System.Diagnostics.DebuggerBrowsableState;
 using Browse = System.Diagnostics.DebuggerBrowsableAttribute;
@@ -24,6 +25,7 @@ internal abstract class ComponentCommands : IComponentStash
     internal abstract void UpdateComponentTypes (Playback playback, bool storeOldComponent);
     internal abstract void ExecuteCommands      (Playback playback);
     internal abstract void SendCommandEvents    (Playback playback);
+    internal abstract void Reset                ();
     
     internal ComponentCommands(int structIndex, Type indexType) {
         this.structIndex = structIndex;
@@ -176,6 +178,15 @@ internal sealed class ComponentCommands<T> : ComponentCommands, IComponentStash<
             stashValue = command.oldComponent;
             changed.Invoke(new ComponentChanged(store, entityId, action, index, this));
         }
+    }
+
+    internal override void Reset()
+    {
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) {
+            Array.Clear(componentCommands, 0, commandCount);
+            stashValue = default;
+        }
+        commandCount = 0;
     }
 }
 

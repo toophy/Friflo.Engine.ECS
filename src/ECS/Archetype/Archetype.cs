@@ -87,8 +87,8 @@ public sealed class Archetype
     [Browse(Never)] internal readonly   ComponentTypes      componentTypes; // 40   - component types of archetype
     [Browse(Never)] internal readonly   Tags                tags;           // 40   - tags assigned to archetype
     [Browse(Never)] internal readonly   ArchetypeKey        key;            //  8
-    /// <remarks>Lookups on <see cref="heapMap"/>[] does not require a range check. See <see cref="EntitySchema.CheckStructIndex"/></remarks>
-    [Browse(Never)] internal readonly   StructHeap[]        heapMap;        //  8   - never null. Length always = maxStructIndex. Used for heap lookup
+    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
+    [Browse(Never)] internal readonly   StructHeapMap       heapMap;        //  8   - immutable component heap lookup
     [Browse(Never)] internal readonly   EntityStoreBase     store;          //  8   - containing EntityStoreBase
     [Browse(Never)] internal readonly   EntityStore         entityStore;    //  8   - containing EntityStore
     [Browse(Never)] internal readonly   int                 archIndex;      //  4   - archetype index in EntityStore.archs[]
@@ -174,7 +174,7 @@ public sealed class Archetype
         archIndex       = EntityStoreBase.Static.DefaultArchIndex;
         structHeaps     = Array.Empty<StructHeap>();
         entityIds       = new int [memory.capacity];
-        heapMap         = EntityStoreBase.Static.DefaultHeapMap; // all items are always null
+        heapMap         = EntityStoreBase.Static.DefaultHeapMap;
         key             = new ArchetypeKey(this);
         // componentCount   = 0         // has no components
         // componentTypes   = default   // has no components
@@ -193,10 +193,9 @@ public sealed class Archetype
         componentCount  = 1;
         structHeaps     = new [] { heap };
         entityIds       = new int [memory.capacity];
-        heapMap         = new StructHeap[config.schema.maxStructIndex];
+        heapMap         = new StructHeapMap(heap, config.schema.maxStructIndex);
         componentTypes  = new ComponentTypes(structHeaps);
         key             = new ArchetypeKey(this);
-        heapMap[heap.structIndex] = heap;
         heap.SetArchetypeDebug(this);
     }
     
@@ -214,7 +213,7 @@ public sealed class Archetype
         componentCount  = heaps.Length;
         structHeaps     = heaps;
         entityIds       = new int [memory.capacity];
-        heapMap         = new StructHeap[config.schema.maxStructIndex];
+        heapMap         = new StructHeapMap(heaps, config.schema.maxStructIndex);
         componentTypes  = new ComponentTypes(heaps);
         this.tags       = tags;
         key             = new ArchetypeKey(this);
@@ -222,7 +221,6 @@ public sealed class Archetype
         {
             var heap    = heaps[pos];
             heap.SetArchetypeDebug(this);
-            heapMap[heap.structIndex] = heap;
             SetStandardComponentHeaps(heap, ref std);
         }
     }

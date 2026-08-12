@@ -507,6 +507,14 @@ public partial class EntityStore
         }
         return id;
     }
+
+    /// <summary>Reserve an entity id for command buffers recording in parallel.</summary>
+    internal int NewIdSynced()
+    {
+        lock (idAllocationLock) {
+            return NewId();
+        }
+    }
     
     /// <remarks> Set <see cref="EntityNode.archetype"/> = null. </remarks>
     internal void DeleteNode(Entity entity)

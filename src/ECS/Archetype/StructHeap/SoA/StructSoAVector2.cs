@@ -64,9 +64,9 @@ internal sealed class StructSoAVector2<T> : StructHeap<T>
         componentStash = GetComponentFromSoA(components, compIndex, stride);
     }
     
-    internal override  void SetBatchComponent(BatchComponent[] batchComponents, int compIndex)
+    internal override  void SetBatchComponent(BatchComponent batchComponent, int compIndex)
     {
-        ComponentToSoA(((BatchComponent<T>)batchComponents[structIndex]).value, components, compIndex, stride);
+        ComponentToSoA(((BatchComponent<T>)batchComponent).value, components, compIndex, stride);
     }
     
     // --- StructHeap

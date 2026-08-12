@@ -64,9 +64,9 @@ internal sealed class StructAoSVector4<T> : StructHeap<T>
         componentStash = GetComponentFromAoS(compIndex);
     }
     
-    internal override  void SetBatchComponent(BatchComponent[] batchComponents, int compIndex)
+    internal override  void SetBatchComponent(BatchComponent batchComponent, int compIndex)
     {
-        ComponentToAoS(((BatchComponent<T>)batchComponents[structIndex]).value, compIndex);
+        ComponentToAoS(((BatchComponent<T>)batchComponent).value, compIndex);
     }
     
     // --- StructHeap

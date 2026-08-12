@@ -2,6 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 using static System.Diagnostics.DebuggerBrowsableState;
 using Browse = System.Diagnostics.DebuggerBrowsableAttribute;
@@ -18,11 +19,21 @@ public class BatchAlreadyAppliedException : InvalidOperationException
     internal BatchAlreadyAppliedException(string message) : base (message) { }
 }
 
-internal class BatchComponent { }
+internal abstract class BatchComponent
+{
+    internal abstract void ClearValue();
+}
 
-internal class BatchComponent<T> : BatchComponent where T : struct
+internal sealed class BatchComponent<T> : BatchComponent where T : struct
 {
     internal    T   value;
+
+    internal override void ClearValue()
+    {
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) {
+            value = default;
+        }
+    }
 }
 
 internal enum BatchOwner
@@ -64,7 +75,7 @@ public sealed class  EntityBatch
     #endregion
 
 #region internal fields
-    [Browse(Never)] internal            BatchComponent[]    batchComponents;    //  8
+    [Browse(Never)] internal            TypeIndexSlotMap<BatchComponent> batchComponents; //  8
     [Browse(Never)] private  readonly   ComponentType[]     componentTypes;     //  8
     [Browse(Never)] internal readonly   EntityStoreBase     store;              //  8   - used only if owner == EntityStore
     [Browse(Never)] internal            int                 entityId;           //  4   - used only if owner == EntityStore
@@ -104,6 +115,12 @@ public sealed class  EntityBatch
     /// </summary>
     public void Clear()
     {
+        var components = batchComponents;
+        if (components != null) {
+            foreach (var componentType in componentsAdd) {
+                components[componentType.StructIndex].ClearValue();
+            }
+        }
         tagsAdd             = default;
         tagsRemove          = default;
         componentsAdd       = default;
@@ -180,9 +197,9 @@ public sealed class  EntityBatch
         if (owner == BatchOwner.Application) throw ApplyException();
         if (owner == BatchOwner.EntityStore) throw BatchAlreadyAppliedException();
         store.ApplyBatchTo(this, entityId);
-        store.ReturnBatch(this);
         owner = BatchOwner.EntityStore;
         Clear();
+        store.ReturnBatch(this);
     }
     
     private static InvalidOperationException ApplyException() {
@@ -210,17 +227,17 @@ public sealed class  EntityBatch
     {
         if (owner == BatchOwner.EntityStore) throw BatchAlreadyAppliedException();
         var structIndex = StructInfo<T>.Index;
+        var components      = batchComponents ??= CreateBatchComponentMap();
+        var batchComponent  = components[structIndex] ??= CreateBatchComponent(structIndex);
+        ((BatchComponent<T>)batchComponent).value = component;
         componentsAdd.      bitSet.SetBit   (structIndex);
         componentsRemove.   bitSet.ClearBit (structIndex);
-        var components      = batchComponents           ??= CreateBatchComponents();
-        var batchComponent  = components[structIndex]   ??= CreateBatchComponent(structIndex);
-        ((BatchComponent<T>)batchComponent).value = component;
         return this;   
     }
-    
-    private static BatchComponent[] CreateBatchComponents() {
-        var maxStructIndex = EntityStoreBase.Static.EntitySchema.maxStructIndex;
-        return new BatchComponent[maxStructIndex];
+
+    private static TypeIndexSlotMap<BatchComponent> CreateBatchComponentMap()
+    {
+        return new TypeIndexSlotMap<BatchComponent>(EntityStoreBase.Static.EntitySchema.maxStructIndex);
     }
     
     private BatchComponent CreateBatchComponent(int structIndex) {
@@ -234,6 +251,9 @@ public sealed class  EntityBatch
     {
         if (owner == BatchOwner.EntityStore) throw BatchAlreadyAppliedException();
         var structIndex = StructInfo<T>.Index;
+        if (componentsAdd.bitSet.Has(structIndex)) {
+            batchComponents[structIndex].ClearValue();
+        }
         componentsRemove.   bitSet.SetBit   (structIndex);
         componentsAdd.      bitSet.ClearBit (structIndex);
         return this;   

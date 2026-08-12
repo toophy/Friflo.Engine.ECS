@@ -73,7 +73,7 @@ public partial class EntityStoreBase
         var components  = batch.batchComponents;
         foreach (var componentType in batch.componentsAdd) {
             var heap = newHeapMap[componentType.StructIndex];
-            heap.SetBatchComponent(components, compIndex);
+            heap.SetBatchComponent(components[componentType.StructIndex], compIndex);
             if (componentType.IndexType != null) {
                 var entity = new Entity((EntityStore)this, entityId, node.revision);
                 if (oldHeapMap[componentType.StructIndex] == null) {
@@ -107,7 +107,7 @@ public partial class EntityStoreBase
         }
     }
     
-    private static void StashComponentValues(EntityBatch batch, StructHeap[] oldHeapMap, int compIndex)
+    private static void StashComponentValues(EntityBatch batch, StructHeapMap oldHeapMap, int compIndex)
     {
         var componentsChanged = batch.componentsAdd;
         componentsChanged.Add(batch.componentsRemove);
@@ -116,7 +116,7 @@ public partial class EntityStoreBase
         }
     }
     
-    private static void RemoveComponentIndexes(in ComponentTypes indexedComponentsRemove, Entity entity, StructHeap[] oldHeapMap)
+    private static void RemoveComponentIndexes(in ComponentTypes indexedComponentsRemove, Entity entity, StructHeapMap oldHeapMap)
     {
         foreach (var componentType in indexedComponentsRemove) {
             var heap = oldHeapMap[componentType.StructIndex];
