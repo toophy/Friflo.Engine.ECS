@@ -46,8 +46,8 @@ public sealed class RangeIndex<TIndexedComponent,TValue> : GenericComponentIndex
             return;
         }
         var map = entityMap;
-        SortedListUtils.RemoveComponentValue (id, oldValue, map, this);
-        SortedListUtils.AddComponentValue    (id, value,    map, this);
+        SortedListUtils.RemoveComponentValue (id, oldValue, map, this, updateOwner: false);
+        SortedListUtils.AddComponentValue    (id, value,    map, this, updateOwner: false);
     }
 
     internal override void Remove<TComponent>(int id, StructHeap<TComponent> heap)
@@ -60,7 +60,7 @@ public sealed class RangeIndex<TIndexedComponent,TValue> : GenericComponentIndex
     {
         var map         = entityMap;
         var heap        = idHeap;
-        var components  = ((StructHeap<TIndexedComponent>)archetype.heapMap[structIndex]).components;
+        var components  = ((StructHeap<TIndexedComponent>)archetype.heapMap[structIndex]).Components;
         TValue value    = components[compIndex].GetIndexedValue();
         map.TryGetValue(value, out var idArray);
         var idSpan  = idArray.GetSpan(heap, store);
@@ -74,7 +74,7 @@ public sealed class RangeIndex<TIndexedComponent,TValue> : GenericComponentIndex
         } else {
             map[value] = idArray;
         }
-        store.nodes[id].isOwner &= ~indexBit;
+        EntityTypeTracking.RemoveOwner(store, id, structIndex);
     }
     #endregion
     

@@ -73,6 +73,7 @@ internal sealed class AssemblyLoader
         */
         var result = new Assembly[engineDependants.Count];
         engineDependants.CopyTo(result);
+        Array.Sort(result, static (left, right) => string.CompareOrdinal(left.FullName, right.FullName));
         return result;
     }
     
@@ -161,6 +162,7 @@ internal sealed class AssemblyLoader
     {
         componentTypes.Clear();
         var types = assembly.GetTypes();
+        Array.Sort(types, static (left, right) => string.CompareOrdinal(left.FullName, right.FullName));
         foreach (var type in types)
         {
             bool isValueType    = type.IsValueType;
@@ -184,6 +186,7 @@ internal sealed class AssemblyLoader
                 componentTypes.Add(new AssemblyType(type, SchemaTypeKind.Script, assemblyIndex));
             }
         }
+        componentTypes.Sort(static (left, right) => string.CompareOrdinal(left.type.FullName, right.type.FullName));
     }
     
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL3050", Justification = "Not called for NativeAOT")]

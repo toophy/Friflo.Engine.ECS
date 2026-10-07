@@ -11,8 +11,8 @@ namespace Friflo.Engine.ECS;
 
 internal struct EntityChange
 {
-    internal            ComponentTypes                  componentTypes; // 32 
-    internal            Tags                            tags;           // 32
+    internal            ComponentTypes                  componentTypes; // 40
+    internal            Tags                            tags;           // 40
     internal            Archetype                       oldArchetype;   //  8
     internal            int                             entityId;       //  4
 }

@@ -21,7 +21,7 @@ public partial class EntityStoreBase
     [Browse(Never)]
     internal int PooledEntityBatchCount => internBase.entityBatches.Count;
     
-    private readonly long indexTypesMask = Static.EntitySchema.indexTypes.bitSet.l0;
+    private static readonly ComponentTypes IndexTypes = Static.EntitySchema.indexTypes;
 
     internal EntityBatch GetBatch(int entityId)
     {
@@ -54,7 +54,7 @@ public partial class EntityStoreBase
         
         // --- stash old component values only if an event handler is set or an indexed component changes 
         var oldHeapMap          = archetype.heapMap;
-        var indexChanges        = ((batch.componentsAdd.bitSet.l0 | batch.componentsRemove.bitSet.l0) & indexTypesMask) != 0;
+        var indexChanges        = batch.componentsAdd.HasAny(IndexTypes) || batch.componentsRemove.HasAny(IndexTypes);
         var sendRemoveEvents    = internBase.componentRemoved != null;
         var sendAddEvents       = internBase.componentAdded   != null;
         if (sendRemoveEvents || sendAddEvents || indexChanges) {
@@ -73,7 +73,7 @@ public partial class EntityStoreBase
         var components  = batch.batchComponents;
         foreach (var componentType in batch.componentsAdd) {
             var heap = newHeapMap[componentType.StructIndex];
-            heap.SetBatchComponent(components, compIndex);
+            heap.SetBatchComponent(components[componentType.StructIndex], compIndex);
             if (componentType.IndexType != null) {
                 var entity = new Entity((EntityStore)this, entityId, node.revision);
                 if (oldHeapMap[componentType.StructIndex] == null) {
@@ -84,8 +84,8 @@ public partial class EntityStoreBase
             }
         }
         // --- update indexes of removed indexed components
-        var removedIndexTypes = batch.componentsRemove.bitSet.l0 & indexTypesMask;
-        if (removedIndexTypes != 0) {
+        var removedIndexTypes = ComponentTypes.Intersect(batch.componentsRemove, IndexTypes);
+        if (!removedIndexTypes.IsDefault()) {
             RemoveComponentIndexes(removedIndexTypes, new Entity((EntityStore)this, entityId, node.revision), oldHeapMap);
         }
         
@@ -107,7 +107,7 @@ public partial class EntityStoreBase
         }
     }
     
-    private static void StashComponentValues(EntityBatch batch, StructHeap[] oldHeapMap, int compIndex)
+    private static void StashComponentValues(EntityBatch batch, StructHeapMap oldHeapMap, int compIndex)
     {
         var componentsChanged = batch.componentsAdd;
         componentsChanged.Add(batch.componentsRemove);
@@ -116,10 +116,8 @@ public partial class EntityStoreBase
         }
     }
     
-    private static void RemoveComponentIndexes(long indexTypes, Entity entity, StructHeap[] oldHeapMap)
+    private static void RemoveComponentIndexes(in ComponentTypes indexedComponentsRemove, Entity entity, StructHeapMap oldHeapMap)
     {
-        var indexedComponentsRemove = new ComponentTypes();
-        indexedComponentsRemove.bitSet.l0 = indexTypes;
         foreach (var componentType in indexedComponentsRemove) {
             var heap = oldHeapMap[componentType.StructIndex];
             heap?.RemoveIndex(entity);

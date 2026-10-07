@@ -219,7 +219,7 @@ internal static class SchemaUtils
             return (string) arg[0].Value;
         }
         return type.Name;
-    }    
+    }
 }
 
 internal readonly struct GenericInstanceType

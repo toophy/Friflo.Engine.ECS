@@ -117,7 +117,7 @@ internal sealed class SchemaTypes
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL3050", Justification = "Not called for NativeAOT")]
     private SchemaType CreateTagType(Type type)
     {
-        var tagIndex        = tags.Count + 1;
+        var tagIndex        = SchemaTypeIndex.Next(tags.Count, "tag");
         var createParams    = new object[] { tagIndex };
         var method          = typeof(SchemaUtils).GetMethod(nameof(SchemaUtils.CreateTagType), Flags);
         var genericMethod   = method!.MakeGenericMethod(type);
@@ -130,7 +130,7 @@ internal sealed class SchemaTypes
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL3050", Justification = "Not called for NativeAOT")]
     private SchemaType CreateComponentType(Type type)
     {
-        var structIndex     = components.Count + 1;
+        var structIndex     = SchemaTypeIndex.Next(components.Count, "component and relation");
         var indexType       = ComponentIndexUtils.GetIndexType(type, out var indexValueType);
         var createParams    = new object[] { structIndex, indexType, indexValueType };
         var method          = typeof(SchemaUtils).GetMethod(nameof(SchemaUtils.CreateComponentType), Flags);
@@ -144,7 +144,7 @@ internal sealed class SchemaTypes
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL3050", Justification = "Not called for NativeAOT")]
     private SchemaType CreateRelationType(Type type)
     {
-        var structIndex     = components.Count + 1;
+        var structIndex     = SchemaTypeIndex.Next(components.Count, "component and relation");
         var relationType    = RelationTypeUtils.GetEntityRelationsType(type, out Type keyType);
         var createParams    = new object[] { structIndex, relationType, keyType };
         var method          = typeof(SchemaUtils).GetMethod(nameof(SchemaUtils.CreateRelationType), Flags);
@@ -158,7 +158,7 @@ internal sealed class SchemaTypes
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL3050", Justification = "Not called for NativeAOT")]
     private SchemaType CreateScriptType(Type type)
     {
-        var scriptIndex     = scripts.Count + 1;
+        var scriptIndex     = SchemaTypeIndex.Next(scripts.Count, "script");
         var createParams    = new object[] { scriptIndex };
         var method          = typeof(SchemaUtils).GetMethod(nameof(SchemaUtils.CreateScriptType), Flags);
         var genericMethod   = method!.MakeGenericMethod(type);

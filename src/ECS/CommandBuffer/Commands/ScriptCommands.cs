@@ -8,7 +8,7 @@ namespace Friflo.Engine.ECS;
 
 internal struct ScriptCommand
 {
-    internal    byte                scriptIndex;    //  1
+    internal    ushort              scriptIndex;    //  2
     internal    ScriptChangedAction action;         //  1
     internal    int                 entityId;       //  4
     internal    Script              script;         //  8

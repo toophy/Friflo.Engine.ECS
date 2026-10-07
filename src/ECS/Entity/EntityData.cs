@@ -39,7 +39,7 @@ public readonly ref struct EntityData
 #endregion
 
 #region fields
-    [Browse(Never)] private readonly    StructHeap[]    heapMap;
+    [Browse(Never)] private readonly    StructHeapMap   heapMap;
     [Browse(Never)] private readonly    Archetype       archetype;
     
     /// <summary> <see cref="Entity"/> id </summary>
@@ -56,9 +56,9 @@ public readonly ref struct EntityData
     
     /// <summary>Return the component of the given type as a reference.</summary>
     /// <exception cref="NullReferenceException"> if the entity is deleted or has no component of Type <typeparamref name="T"/></exception>
-    /// <remarks>Executes in O(1)</remarks>
+    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public  ref T       Get<T>() where T : struct, IComponent {
-        return ref ((StructHeap<T>)heapMap[StructInfo<T>.Index]).components[compIndex];
+        return ref ((StructHeap<T>)heapMap[StructInfo<T>.Index]).GetComponentRef(compIndex); // SOA
     }
     
     /// <summary>
@@ -66,11 +66,11 @@ public readonly ref struct EntityData
     /// Returns true if the entity contains a component of specified type. Otherwise false.
     /// </summary>
     /// <exception cref="NullReferenceException"> if the entity is deleted.</exception>
-    /// <remarks>Executes in O(1)</remarks>
+    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public  bool        TryGet<T>(out T value) where T : struct, IComponent {
         var type = heapMap[StructInfo<T>.Index];
         if (type != null) {
-            value =  ((StructHeap<T>)type).components[compIndex];
+            value =  ((StructHeap<T>)type).GetComponentValue(compIndex); // SOA
             return true;
         }
         value = default;

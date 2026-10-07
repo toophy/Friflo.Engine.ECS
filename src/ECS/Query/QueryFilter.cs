@@ -45,15 +45,15 @@ public class QueryFilter
     #endregion
     
 #region private fields
-    [Browse(Never)] private     Tags            allTags;                    //  32  entity must have all tags
-    [Browse(Never)] private     Tags            anyTags;                    //  32  entity must have any tag
-    [Browse(Never)] private     Tags            withoutAllTags;             //  32  entity must not have all tags
-    [Browse(Never)] private     Tags            withoutAnyTags;             //  32  entity must not have any tag
+    [Browse(Never)] private     Tags            allTags;                    //  40  entity must have all tags
+    [Browse(Never)] private     Tags            anyTags;                    //  40  entity must have any tag
+    [Browse(Never)] private     Tags            withoutAllTags;             //  40  entity must not have all tags
+    [Browse(Never)] private     Tags            withoutAnyTags;             //  40  entity must not have any tag
          
-    [Browse(Never)] private     ComponentTypes  allComponents;              //  32  entity must have all component types
-    [Browse(Never)] private     ComponentTypes  anyComponents;              //  32  entity must have any component types
-    [Browse(Never)] private     ComponentTypes  withoutAllComponents;       //  32  entity must not have all component types
-    [Browse(Never)] private     ComponentTypes  withoutAnyComponents;       //  32  entity must not have any component types
+    [Browse(Never)] private     ComponentTypes  allComponents;              //  40  entity must have all component types
+    [Browse(Never)] private     ComponentTypes  anyComponents;              //  40  entity must have any component types
+    [Browse(Never)] private     ComponentTypes  withoutAllComponents;       //  40  entity must not have all component types
+    [Browse(Never)] private     ComponentTypes  withoutAnyComponents;       //  40  entity must not have any component types
                     
     [Browse(Never)] private     int             withoutAllTagsCount;        //   8
     [Browse(Never)] private     int             anyTagsCount;               //   8

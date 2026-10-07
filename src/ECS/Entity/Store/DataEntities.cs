@@ -188,15 +188,13 @@ public partial class EntityStore
     private static void UpdateComponentIndexes(Entity entity, Archetype oldType)
     {
         var newType         = entity.archetype;
-        var indexTypesMask  = Static.EntitySchema.indexTypes.bitSet.l0;
-        var oldIndexBits    = oldType.componentTypes.bitSet.l0 & indexTypesMask;
-        var newIndexBits    = newType.componentTypes.bitSet.l0 & indexTypesMask;
-        var indexBits       = oldIndexBits | newIndexBits;
-        if (indexBits == 0) {
+        var schemaIndexTypes = Static.EntitySchema.indexTypes;
+        var indexTypes       = ComponentTypes.Intersect(oldType.componentTypes, schemaIndexTypes);
+        var newIndexTypes    = ComponentTypes.Intersect(newType.componentTypes, schemaIndexTypes);
+        indexTypes.Add(newIndexTypes);
+        if (indexTypes.IsDefault()) {
             return;
         }
-        var indexTypes = new ComponentTypes ();
-        indexTypes.bitSet.l0 = indexBits;
         foreach (var type in indexTypes)
         {
             var oldHeap = oldType.heapMap[type.StructIndex];

@@ -18,35 +18,47 @@ namespace Friflo.Engine.ECS;
 /// - to enable maximum efficiency when GC iterate <see cref="Archetype.structHeaps"/> <see cref="Archetype.heapMap"/>
 ///   for collection.
 /// </remarks>
-internal sealed class StructHeap<T> : StructHeap, IComponentStash<T>
+internal sealed class StructHeapGen<T> : StructHeap<T>
     where T : struct
 {
-    /// <summary>
-    /// Method only available for debugging. Reasons:<br/>
-    /// - it boxes struct values to return them as objects<br/>
-    /// - it allows only reading struct values
-    /// </summary>
-    public override object      GetStashDebug() => componentStash;
-    public          ref T       GetStashRef()     => ref componentStash;
+    public override T[]     Components      => components;
     
+    internal override (object,int) GetComponents () => (components, 0);
+
     // Note: Should not contain any other field. See class <remarks>
     // --- internal fields
-    internal            T[]                 components;     //  8
-    internal            T                   componentStash; //  sizeof(T)
+    private         T[]     components;     //  8
     
-    internal StructHeap(int structIndex)
+    internal StructHeapGen(int structIndex)
         : base (structIndex)
     {
-        components          = new T[ArchetypeUtils.MinCapacity];
+        components          = new T[SimdUtils.CalcCapacity<T>(ArchetypeUtils.MinCapacity)];
     }
     
+    internal override ref T GetComponentRef(int index) {
+        return ref components[index];
+    }
+    
+    internal override T GetComponentValue(int index) {
+        return components[index];
+    }
+    
+    internal override void SetComponent(int index, T component) {
+        components[index] = component;
+    }
+    
+    internal override T GetSoA(int index) {
+        throw new InvalidOperationException($"Component '{typeof(T).Name}' is stored as AoS. GetSoA() requires SoA storage. Add [SoA] attribute or use GetComponent() instead.");
+    }
+    
+    // --- StructHeap
     internal override void StashComponent(int compIndex) {
         componentStash = components[compIndex];
     }
     
-    internal override  void SetBatchComponent(BatchComponent[] components, int compIndex)
+    internal override  void SetBatchComponent(BatchComponent batchComponent, int compIndex)
     {
-        this.components[compIndex] = ((BatchComponent<T>)components[structIndex]).value;
+        components[compIndex] = ((BatchComponent<T>)batchComponent).value;
     }
     
     // --- StructHeap
@@ -55,7 +67,7 @@ internal sealed class StructHeap<T> : StructHeap, IComponentStash<T>
     internal  override  Type    StructType          => typeof(T);
     
     internal override void ResizeComponents    (int capacity, int count) {
-        var newComponents   = new T[capacity];
+        var newComponents   = new T[SimdUtils.CalcCapacity<T>(capacity)];
         var curComponents   = components;
         var source          = new ReadOnlySpan<T>(curComponents, 0, count);
         var target          = new Span<T>(newComponents);
@@ -70,18 +82,18 @@ internal sealed class StructHeap<T> : StructHeap, IComponentStash<T>
     
     internal override void CopyComponentTo(int sourcePos, StructHeap target, int targetPos)
     {
-        var targetHeap = (StructHeap<T>)target;
+        var targetHeap = (StructHeapGen<T>)target;
         targetHeap.components[targetPos] = components[sourcePos];
     }
     
-    internal override void CopyComponent(int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, long updateIndexTypes)
+    internal override void CopyComponent(int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, in ComponentTypes updateIndexTypes)
     {
         if (typeof(T) == typeof(TreeNode)) {
             return;
         }
         var copyValue       = CopyValueUtils<T>.CopyValue;
         ref T source        = ref components[sourcePos];
-        var typedTargetHeap = (StructHeap<T>)targetHeap;
+        var typedTargetHeap = (StructHeapGen<T>)targetHeap;
         ref T target        = ref typedTargetHeap.components[targetPos];
         if (StructInfo<T>.HasIndex) {
             AddOrUpdateIndex(source, target, context.target, typedTargetHeap, updateIndexTypes);
@@ -93,9 +105,9 @@ internal sealed class StructHeap<T> : StructHeap, IComponentStash<T>
         }
     }
     
-    private static void AddOrUpdateIndex(in T source, in T target, in Entity targetEntity, StructHeap<T> targetHeap, long updateIndexTypes)
+    private static void AddOrUpdateIndex(in T source, in T target, in Entity targetEntity, StructHeap<T> targetHeap, in ComponentTypes updateIndexTypes)
     {
-        if (((1 << StructInfo<T>.Index) & updateIndexTypes) == 0) {
+        if (!updateIndexTypes.bitSet.Has(StructInfo<T>.Index)) {
             StoreIndex.AddIndex(targetEntity.store, targetEntity.Id, source);
         } else {
             targetHeap.componentStash = target;

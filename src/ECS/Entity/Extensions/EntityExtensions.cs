@@ -15,21 +15,17 @@ namespace Friflo.Engine.ECS;
 public static partial class EntityExtensions
 {
 #region add components
-    internal static readonly long IndexTypesMask = EntityStoreBase.Static.EntitySchema.indexTypes.bitSet.l0;
+    internal static readonly ComponentTypes IndexTypes = EntityStoreBase.Static.EntitySchema.indexTypes;
     
-    private static void UpdateIndexedComponents(Entity entity, Archetype archetype, long indexTypesMask)
+    private static void UpdateIndexedComponents(Entity entity, Archetype archetype, in ComponentTypes indexTypes)
     {
-        var indexTypes = new ComponentTypes();
-        indexTypes.bitSet.l0 = indexTypesMask;
         foreach (var indexType in indexTypes) {
             archetype.heapMap[indexType.StructIndex].UpdateIndex(entity);
         }
     }
     
-    private static void AddIndexedComponents(Entity entity, Archetype newType, Archetype oldType, long indexTypesMask)
+    private static void AddIndexedComponents(Entity entity, Archetype newType, Archetype oldType, in ComponentTypes indexTypes)
     {
-        var indexTypes = new ComponentTypes();
-        indexTypes.bitSet.l0 = indexTypesMask;
         foreach (var indexType in indexTypes) {
             var heap = newType.heapMap[indexType.StructIndex]; 
             if (oldType.heapMap[indexType.StructIndex] == null) {
@@ -40,10 +36,8 @@ public static partial class EntityExtensions
         }
     }
     
-    private static void RemoveIndexedComponents(Entity entity, Archetype archetype, long indexTypesMask)
+    private static void RemoveIndexedComponents(Entity entity, Archetype archetype, in ComponentTypes indexTypes)
     {
-        var indexTypes = new ComponentTypes();
-        indexTypes.bitSet.l0 = indexTypesMask;
         foreach (var indexType in indexTypes) {
             archetype.heapMap[indexType.StructIndex]?.RemoveIndex(entity);
         }
@@ -51,7 +45,7 @@ public static partial class EntityExtensions
     
     private static void StashAddComponents(EntityStoreBase store, in ComponentTypes types, in SignatureIndexes indexes, Archetype oldType, int oldCompIndex)
     {
-        if (store.ComponentAdded == null && (types.bitSet.l0 & IndexTypesMask) == 0) {
+        if (store.ComponentAdded == null && !types.HasAny(IndexTypes)) {
             return;
         }
         var oldHeapMap  = oldType.heapMap;
@@ -70,9 +64,9 @@ public static partial class EntityExtensions
         var store = entity.store;
         
         // --- add indexed components to indexes
-        var indexTypesMask = types.bitSet.l0 & IndexTypesMask;
-        if (indexTypesMask != 0) {
-            AddIndexedComponents(entity, newType, oldType, indexTypesMask);
+        var indexTypes = ComponentTypes.Intersect(types, IndexTypes);
+        if (!indexTypes.IsDefault()) {
+            AddIndexedComponents(entity, newType, oldType, indexTypes);
         }
         // --- tag event
         var tagsChanged = store.TagsChanged;
@@ -99,7 +93,7 @@ public static partial class EntityExtensions
 #region remove components
     private static void StashRemoveComponents(EntityStoreBase store, in SignatureIndexes removeComponents, Archetype oldType, int oldCompIndex)
     {
-        if (store.ComponentRemoved == null && (oldType.componentTypes.bitSet.l0 & IndexTypesMask) == 0) {
+        if (store.ComponentRemoved == null && !oldType.componentTypes.HasAny(IndexTypes)) {
             return;
         }
         var oldHeapMap = oldType.heapMap;
@@ -113,9 +107,9 @@ public static partial class EntityExtensions
     {
         var store = entity.store;
         // --- remove indexed components from indexes
-        var indexTypesMask = types.bitSet.l0 & IndexTypesMask;
-        if (indexTypesMask != 0) {
-            RemoveIndexedComponents(entity, oldType, indexTypesMask);
+        var indexTypes = ComponentTypes.Intersect(types, IndexTypes);
+        if (!indexTypes.IsDefault()) {
+            RemoveIndexedComponents(entity, oldType, indexTypes);
         }
         // --- tag event
         var tagsChanged = store.TagsChanged;
@@ -144,7 +138,7 @@ public static partial class EntityExtensions
 #region set components
     private static void StashSetComponents(in Entity entity, in ComponentTypes types, in SignatureIndexes indexes, Archetype type, int compIndex)
     {
-        if (entity.store.ComponentAdded == null && (types.bitSet.l0 & IndexTypesMask) == 0) {
+        if (entity.store.ComponentAdded == null && !types.HasAny(IndexTypes)) {
             return;
         }
         var heapMap = type.heapMap;
@@ -181,9 +175,9 @@ public static partial class EntityExtensions
     {
         var store = entity.store;
         // --- update indexed component indexes
-        var indexTypesMask = types.bitSet.l0 & IndexTypesMask;
-        if (indexTypesMask != 0) {
-            UpdateIndexedComponents(entity, type, indexTypesMask);
+        var indexTypes = ComponentTypes.Intersect(types, IndexTypes);
+        if (!indexTypes.IsDefault()) {
+            UpdateIndexedComponents(entity, type, indexTypes);
         }
         var componentAdded = store.ComponentAdded;
         if (componentAdded == null) {

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Friflo.Engine.ECS.Collections;
 using Friflo.Engine.ECS.Index;
 using Friflo.Engine.ECS.Relations;
+using Friflo.Engine.ECS.Utils;
 using static System.Diagnostics.DebuggerBrowsableState;
 using Browse = System.Diagnostics.DebuggerBrowsableAttribute;
 
@@ -54,6 +55,8 @@ internal partial struct StoreExtension
     
 #region component indices
     internal                        AbstractComponentIndex[]    indexMap;                   //  8   - map & its component indexes created on demand
+    internal                        Dictionary<int, BitSet>     ownerTypeOverflow;          //  8   - high indexed/relation type bits by entity id
+    internal                        Dictionary<int, BitSet>     linkedTypeOverflow;         //  8   - high incoming-link type bits by entity id
     #endregion
     
 #region entity relations
@@ -75,6 +78,7 @@ internal partial struct StoreExtension
     }
     
     internal void RemoveEntity(int id) {
+        EntityTypeTracking.RemoveEntity(this, id);
         if (id2Pid != null) {
             var pid = id2Pid[id];
             id2Pid.Remove(id);

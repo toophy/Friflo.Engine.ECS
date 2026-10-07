@@ -45,14 +45,14 @@ public sealed class CreateEntityBatch
     #endregion
 
 #region internal fields
-    [Browse(Never)] private  readonly   BatchComponent[]    batchComponents;    //  8
+    [Browse(Never)] internal            TypeIndexSlotMap<BatchComponent> batchComponents; //  8
     [Browse(Never)] private  readonly   ComponentType[]     componentTypes;     //  8
     [Browse(Never)] private  readonly   EntityStoreBase     store;              //  8
     [Browse(Never)] internal            bool                autoReturn;         //  4
     [Browse(Never)] internal            bool                isReturned;         //  4
     [Browse(Never)] private             Archetype           archetype;          //  8
-    [Browse(Never)] private             Tags                tagsCreate;         // 32
-    [Browse(Never)] private             ComponentTypes      componentsCreate;   // 32
+    [Browse(Never)] private             Tags                tagsCreate;         // 40
+    [Browse(Never)] private             ComponentTypes      componentsCreate;   // 40
     #endregion
     
 #region general methods
@@ -64,12 +64,17 @@ public sealed class CreateEntityBatch
     {
         var schema          = EntityStoreBase.Static.EntitySchema;
         componentTypes      = schema.components;
-        batchComponents     = new BatchComponent[schema.maxStructIndex];
         this.store          = store;
     }
     
     /// <summary> Clear all components and tags previously added to the batch. </summary>
     public CreateEntityBatch Clear() {
+        var components = batchComponents;
+        if (components != null) {
+            foreach (var componentType in componentsCreate) {
+                components[componentType.StructIndex].ClearValue();
+            }
+        }
         componentsCreate  = default;
         tagsCreate        = default;
         archetype         = null;
@@ -140,13 +145,13 @@ public sealed class CreateEntityBatch
         
         // --- assign component values
         foreach (var heap in archetype.structHeaps) {
-            heap.SetBatchComponent(components, compIndex);
+            heap.SetBatchComponent(components[heap.structIndex], compIndex);
         }
         var entity = new Entity(entityStore, id, revision);
         
         // -- add indexed components to indexes
-        var indexTypes = archetype.componentTypes.bitSet.l0 & indexTypesMask;
-        if (indexTypes != 0) {
+        var indexTypes = ComponentTypes.Intersect(archetype.componentTypes, IndexedComponentTypes);
+        if (!indexTypes.IsDefault()) {
             AddIndexedComponents(entity, indexTypes);
         }
         if (autoReturn) {
@@ -160,12 +165,10 @@ public sealed class CreateEntityBatch
         return entity;
     }
     
-    private readonly long indexTypesMask = EntityStoreBase.Static.EntitySchema.indexTypes.bitSet.l0;
+    private static readonly ComponentTypes IndexedComponentTypes = EntityStoreBase.Static.EntitySchema.indexTypes;
     
-    private void AddIndexedComponents(Entity entity, long indexTypes)
+    private void AddIndexedComponents(Entity entity, in ComponentTypes types)
     {
-        var types =  new ComponentTypes();
-        types.bitSet.l0 = indexTypes;
         foreach (var type in types) {
             archetype.heapMap[type.StructIndex].AddIndex(entity);
         }
@@ -196,9 +199,10 @@ public sealed class CreateEntityBatch
         if (isReturned) throw BatchAlreadyReturnedException();
         archetype       = null;
         var structIndex = StructInfo<T>.Index;
-        componentsCreate.bitSet.SetBit(structIndex);
-        var batchComponent = batchComponents[structIndex] ??= CreateBatchComponent(structIndex);
+        var components = batchComponents ??= CreateBatchComponentMap();
+        var batchComponent = components[structIndex] ??= CreateBatchComponent(structIndex);
         ((BatchComponent<T>)batchComponent).value = component;
+        componentsCreate.bitSet.SetBit(structIndex);
         return this;   
     }
     
@@ -210,9 +214,10 @@ public sealed class CreateEntityBatch
         if (isReturned) throw BatchAlreadyReturnedException();
         archetype       = null;
         var structIndex = StructInfo<T>.Index;
-        componentsCreate.bitSet.SetBit(structIndex);
-        var batchComponent = batchComponents[structIndex] ??= CreateBatchComponent(structIndex);
+        var components = batchComponents ??= CreateBatchComponentMap();
+        var batchComponent = components[structIndex] ??= CreateBatchComponent(structIndex);
         ((BatchComponent<T>)batchComponent).value = default;
+        componentsCreate.bitSet.SetBit(structIndex);
         return this;   
     }
     
@@ -236,6 +241,11 @@ public sealed class CreateEntityBatch
     
     private BatchComponent CreateBatchComponent(int structIndex) {
         return componentTypes[structIndex].CreateBatchComponent();
+    }
+
+    private static TypeIndexSlotMap<BatchComponent> CreateBatchComponentMap()
+    {
+        return new TypeIndexSlotMap<BatchComponent>(EntityStoreBase.Static.EntitySchema.maxStructIndex);
     }
     
     /// <summary>

@@ -83,14 +83,14 @@ public partial class EntityStoreBase
         var key = store.searchKey;
         key.SetWith(current, structIndex);
         if (store.archSet.TryGetValue(key, out var archetypeKey)) {
-            return current.componentAdd.Cache((byte)structIndex, archetypeKey.archetype);
+            return current.componentAdd.Cache(structIndex, archetypeKey.archetype);
         }
         var config          = GetArchetypeConfig(store);
         var componentTypes  = current.componentTypes;
         componentTypes.bitSet.SetBit(structIndex);
         var archetype = Archetype.CreateWithComponentTypes(config, componentTypes, current.tags);
         AddArchetype(store, archetype);
-        return current.componentAdd.Cache((byte)structIndex, archetype);
+        return current.componentAdd.Cache(structIndex, archetype);
     }
     
     internal static Archetype GetArchetypeWithout(EntityStoreBase store, Archetype archetype, int structIndex)
@@ -102,14 +102,14 @@ public partial class EntityStoreBase
         var key = store.searchKey;
         key.SetWithout(archetype, structIndex);
         if (store.archSet.TryGetValue(key, out var archetypeKey)) {
-            return archetype.componentRemove.Cache((byte)structIndex, archetypeKey.archetype);
+            return archetype.componentRemove.Cache(structIndex, archetypeKey.archetype);
         }
         var config          = GetArchetypeConfig(store);
         var componentTypes  = archetype.componentTypes;
         componentTypes.bitSet.ClearBit(structIndex);
         var result = Archetype.CreateWithComponentTypes(config, componentTypes, archetype.tags);
         AddArchetype(store, result);
-        return archetype.componentRemove.Cache((byte)structIndex, result);
+        return archetype.componentRemove.Cache(structIndex, result);
     }
     
     private static Archetype GetArchetypeWithTags(EntityStoreBase store, Archetype archetype, in Tags tags)

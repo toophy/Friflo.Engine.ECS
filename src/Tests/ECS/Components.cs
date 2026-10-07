@@ -48,16 +48,18 @@ public struct MyComponent6 : IComponent { public int b; }
 [ComponentKey("my7")]
 public struct MyComponent7 : IComponent { public int b; }
 
-public struct FloatComponent : IComponent { public float value; }
-public struct FloatComponent2 : IComponent { public float value; }
-public struct Position4 : IComponent { public Vector4 value; }
-public struct Velocity4 : IComponent { public Vector4 value; }
+public struct FloatComponent : IComponent { public float   value; } // Layout always AoS
+public struct Pos2           : IComponent { public Vector2 value; } // Layout always AoS
+public struct Pos4           : IComponent { public Vector4 value; } // Layout always AoS
 
-public struct Position2 : IComponent { public Vector2 value; }
-public struct Velocity2 : IComponent { public Vector2 value; }
+[SoA] public struct Pos2SoA :  IComponent { public Vector2 value; }
+[SoA] public struct Pos3SoA :  IComponent { public Vector3 value; }
+[SoA] public struct Pos4SoA :  IComponent { public Vector4 value; }
 
-public struct Position1 : IComponent { public float value; }
-public struct Velocity1 : IComponent { public float value; }
+[AoSoA] public struct Pos2AoSoA : IComponent { public Vector2 value; }
+[AoSoA] public struct Pos3AoSoA : IComponent { public Vector3 value; }
+[AoSoA] public struct Pos4AoSoA : IComponent { public Vector4 value; }
+
 
 public struct MyPropertyComponent : IComponent
 {

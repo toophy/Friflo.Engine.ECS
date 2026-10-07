@@ -208,8 +208,7 @@ public sealed class EntitySchema
     }
     
     /// <remarks>
-    /// Ensures <see cref="StructHeap.structIndex"/> and <see cref="StructInfo{T}.Index"/> is less than <see cref="maxStructIndex"/><br/>
-    /// to make range check redundant when accessing <see cref="Archetype.heapMap"/>[] using an index.
+    /// Ensures <see cref="StructHeap.structIndex"/> and <see cref="StructInfo{T}.Index"/> are less than <see cref="maxStructIndex"/>.
     /// </remarks>
     internal int CheckStructIndex(Type structType, int structIndex)
     {

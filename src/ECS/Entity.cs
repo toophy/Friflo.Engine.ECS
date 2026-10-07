@@ -268,7 +268,7 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
     [Browse(Never)] public  ref EntityName      Name { get {
         var node = store.nodes[Id];
         if (node.IsAlive(Revision)) {
-            return ref node.archetype.std.name.components[node.compIndex];
+            return ref node.archetype.std.name.GetComponentRef(node.compIndex);
         }
         throw EntityNullException();
     } }
@@ -278,7 +278,7 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
     [Browse(Never)] public  ref Position        Position { get {
         var node = store.nodes[Id];
         if (node.IsAlive(Revision)) {
-            return ref node.archetype.std.position.components[node.compIndex];
+            return ref node.archetype.std.position.GetComponentRef(node.compIndex);
         }
         throw EntityNullException();
     } }
@@ -288,7 +288,7 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
     [Browse(Never)] public  ref Rotation        Rotation { get {
         var node = store.nodes[Id];
         if (node.IsAlive(Revision)) {
-            return ref node.archetype.std.rotation.components[node.compIndex];
+            return ref node.archetype.std.rotation.GetComponentRef(node.compIndex);
         }
         throw EntityNullException();
     } }
@@ -298,7 +298,7 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
     [Browse(Never)] public  ref Scale3          Scale3 { get {
         var node = store.nodes[Id];
         if (node.IsAlive(Revision)) {
-            return ref node.archetype.std.scale3.components[node.compIndex];
+            return ref node.archetype.std.scale3.GetComponentRef(node.compIndex);
         }
         throw EntityNullException();
     } }
@@ -393,16 +393,16 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
     
     /// <summary>Return the component of the given type as a reference.</summary>
     /// <exception cref="NullReferenceException"> if entity has no component of Type <typeparamref name="T"/></exception>
-    /// <remarks>Executes in O(1)</remarks>
+    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public  ref T   GetComponent<T>()   where T : struct, IComponent {
         ref var node = ref store.nodes[Id];
         if (node.IsAlive(Revision)) {
-            return ref ((StructHeap<T>)node.archetype.heapMap[StructInfo<T>.Index]).components[node.compIndex];
+            return ref ((StructHeap<T>)node.archetype.heapMap[StructInfo<T>.Index]).GetComponentRef(node.compIndex);
         }
         throw EntityNullException();
     }
     
-    /// <remarks>Executes in O(1)</remarks>
+    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public bool     TryGetComponent<T>(out T result) where T : struct, IComponent
     {
         var node    = store.nodes[Id];
@@ -412,7 +412,7 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
                 result = default;
                 return false;
             }
-            result = ((StructHeap<T>)heap).components[node.compIndex];
+            result = ((StructHeap<T>)heap).GetComponentValue(node.compIndex);
             return true;
         }
         throw EntityNullException();
@@ -460,7 +460,20 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
     #endregion
 
 
-
+    // ------------------------------------ SoA component methods ---------------------------------
+#region SoA components
+    /// <summary>Returns the component of a component type annotated with an <see cref="AoSoAAttribute"/> or
+    /// <see cref="SoAAttribute"/> attribute.</summary>
+    /// <exception cref="NullReferenceException"> if entity has no component of Type <typeparamref name="T"/></exception>
+    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
+    public  T   GetSoA<T>()   where T : struct, IComponent {
+        ref var node = ref store.nodes[Id];
+        if (node.IsAlive(Revision)) {
+            return ((StructHeap<T>)node.archetype.heapMap[StructInfo<T>.Index]).GetSoA(node.compIndex);
+        }
+        throw EntityNullException();
+    }
+    #endregion
 
     // ------------------------------------ script methods ----------------------------------------
 #region script - methods
@@ -644,7 +657,7 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
                 treeNode = default;
                 return false;
             }
-            treeNode = ((StructHeap<TreeNode>)heap).components[node.compIndex];
+            treeNode = ((StructHeap<TreeNode>)heap).GetComponentValue(node.compIndex);
             return true;
         }
         throw EntityNullException();

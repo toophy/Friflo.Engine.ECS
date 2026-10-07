@@ -45,11 +45,11 @@ public struct EntityNode
     /// <summary>Internally used flags assigned to the entity.</summary>
     public              NodeFlags       Flags       =>  archetype != null ? Created : default;
     
-    /// <summary>Property only used to see component names encoded by <see cref="isOwner"/>. </summary>
-    internal            ComponentTypes  IsOwner     =>  new ComponentTypes{ bitSet = new BitSet { l0 = isOwner } };
+    /// <summary>Property only used to see inline component names encoded by <see cref="isOwner"/>. </summary>
+    internal            ComponentTypes  IsOwner     =>  new ComponentTypes{ bitSet = new BitSet { l0 = (uint)isOwner } };
     
-    /// <summary>Property only used to see component names encoded by <see cref="isLinked"/>. </summary>
-    internal            ComponentTypes  IsLinked    =>  new ComponentTypes{ bitSet = new BitSet { l0 = isLinked   } };
+    /// <summary>Property only used to see inline component names encoded by <see cref="isLinked"/>. </summary>
+    internal            ComponentTypes  IsLinked    =>  new ComponentTypes{ bitSet = new BitSet { l0 = (uint)isLinked } };
                     
     public   override   string          ToString()  => GetString();
     #endregion
@@ -66,8 +66,9 @@ public struct EntityNode
     // [Browse(Never)] internal NodeFlags       flags;              //  1
     
     /// <summary>
-    /// Bit mask for all <see cref="AbstractEntityRelations"/> and all <see cref="AbstractComponentIndex"/> instances.<br/> 
-    /// A bit is set if the entity is an owner of either an entity relation set or an indexed component value.
+    /// Inline bit mask for type indexes 0..31 used by <see cref="AbstractEntityRelations"/> and
+    /// <see cref="AbstractComponentIndex"/> instances.<br/>
+    /// Higher owner type indexes are stored in <see cref="StoreExtension.ownerTypeOverflow"/>.
     /// </summary>
     /// <remarks>
     /// Use <see cref="IsOwner"/> to see <see cref="ComponentTypes"/> by name.<br/>
@@ -78,8 +79,9 @@ public struct EntityNode
     [Browse(Never)] internal    int             isOwner;            //  4
     
     /// <summary>
-    /// Bit mask for all <see cref="EntityIndex"/> and all <see cref="EntityLinkRelations{TRelation}"/> instances.<br/> 
-    /// A bit is set if the entity is linked by either a <see cref="ILinkComponent"/> or a <see cref="ILinkRelation"/>.
+    /// Inline bit mask for type indexes 0..31 used by <see cref="EntityIndex"/> and
+    /// <see cref="EntityLinkRelations{TRelation}"/> instances.<br/>
+    /// Higher incoming-link type indexes are stored in <see cref="StoreExtension.linkedTypeOverflow"/>.
     /// </summary>
     /// <remarks>
     /// Use <see cref="IsLinked"/> to see <see cref="ComponentTypes"/> by name.<br/>

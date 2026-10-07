@@ -2,6 +2,8 @@
 // See LICENSE file in the project root for full license information.
 
 using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Friflo.Json.Burst;
 using Friflo.Json.Fliox;
@@ -31,12 +33,12 @@ internal abstract class StructHeap : IComponentStash
 
     internal  abstract  Type        StructType              { get; }
     internal  abstract  void        StashComponent          (int compIndex);
-    internal  abstract  void        SetBatchComponent       (BatchComponent[] components, int compIndex);
+    internal  abstract  void        SetBatchComponent       (BatchComponent batchComponent, int compIndex);
     protected abstract  int         ComponentsLength        { get; }
     internal  abstract  void        ResizeComponents        (int capacity, int count);
     internal  abstract  void        MoveComponent           (int from, int to);
     internal  abstract  void        CopyComponentTo         (int sourcePos, StructHeap targetHeap, int targetPos);
-    internal  abstract  void        CopyComponent           (int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, long updateIndexTypes);
+    internal  abstract  void        CopyComponent           (int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, in ComponentTypes updateIndexTypes);
     internal  abstract  void        SetComponentDefault     (int compIndex);
     internal  abstract  void        SetComponentsDefault    (int compIndexStart, int count);
     internal  abstract  object      GetComponentDebug       (int compIndex);
@@ -77,5 +79,21 @@ internal abstract class StructHeap : IComponentStash
         sb.Append(">  Capacity: ");
         sb.Append(length);
         return sb.ToString();
+    }
+    
+    internal static float[] AllocateAligned(int capacity, out int simdOffset)
+    {
+#if NET6_0_OR_GREATER
+        // capacity + 7  <= 7 floats required for simdOffset
+        float[] array           = GC.AllocateArray<float>(length: capacity + 7, pinned: true);
+        var address = (long)Marshal.UnsafeAddrOfPinnedArrayElement(array, 0);
+        int byteMisalignment = (int)(address & 31);
+        simdOffset              = byteMisalignment == 0 ? 0 : (32 - byteMisalignment) / 4;
+        Debug.Assert(((address + simdOffset * 4) & 31) == 0, "SIMD Alignment failed!");
+        return array; // array[simdOffset] points to the first 32-byte aligned element
+#else
+        simdOffset = 0;
+        return new float[capacity];
+#endif
     }
 }

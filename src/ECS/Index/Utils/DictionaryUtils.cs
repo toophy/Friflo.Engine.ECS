@@ -10,7 +10,8 @@ namespace Friflo.Engine.ECS.Index;
 
 internal static class DictionaryUtils
 {
-    internal static void RemoveComponentValue<TValue>(int id, in TValue value, Dictionary<TValue, IdArray> map, AbstractComponentIndex componentIndex)
+    internal static void RemoveComponentValue<TValue>(int id, in TValue value, Dictionary<TValue, IdArray> map,
+        AbstractComponentIndex componentIndex, bool updateOwner = true)
     {
         var idHeap  = componentIndex.idHeap;
         map.TryGetValue(value, out var ids);
@@ -19,7 +20,9 @@ internal static class DictionaryUtils
         if (index == -1) {
             return; // unexpected. Better safe than sorry. Used belts with suspenders :)
         }
-        componentIndex.store.nodes[id].isOwner &= ~componentIndex.indexBit;
+        if (updateOwner) {
+            EntityTypeTracking.RemoveOwner(componentIndex.store, id, componentIndex.structIndex);
+        }
         if (ids.Count == 1) {
             componentIndex.modified = true; 
             map.Remove(value);
@@ -29,7 +32,8 @@ internal static class DictionaryUtils
         map[value] = ids;
     }
     
-    internal static void AddComponentValue<TValue>(int id, in TValue value, Dictionary<TValue, IdArray> map, AbstractComponentIndex componentIndex)
+    internal static void AddComponentValue<TValue>(int id, in TValue value, Dictionary<TValue, IdArray> map,
+        AbstractComponentIndex componentIndex, bool updateOwner = true)
     {
         var idHeap = componentIndex.idHeap;
         map.TryGetValue(value, out var ids);
@@ -37,7 +41,9 @@ internal static class DictionaryUtils
         if (idSpan.IndexOf(id) != -1) {
             return; // unexpected. Better safe than sorry. Used belts with suspenders :)
         }
-        componentIndex.store.nodes[id].isOwner |= componentIndex.indexBit;
+        if (updateOwner) {
+            EntityTypeTracking.AddOwner(componentIndex.store, id, componentIndex.structIndex);
+        }
         if (ids.Count == 0) {
             componentIndex.modified = true;
         }

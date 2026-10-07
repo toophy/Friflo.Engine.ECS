@@ -76,9 +76,7 @@ public partial class EntityStore
         return CreateEntityNode(archetype, id, out revision);
     }
     
-    private static void RemoveIndexedComponents(Entity entity, long removedIndexTypes) {
-        var removeTypes = new ComponentTypes();
-        removeTypes.bitSet.l0 = removedIndexTypes;
+    private static void RemoveIndexedComponents(Entity entity, in ComponentTypes removeTypes) {
         var heapMap = entity.archetype.heapMap;
         foreach (var removeType in removeTypes) {
             heapMap[removeType.StructIndex].RemoveIndex(entity);
@@ -105,9 +103,11 @@ public partial class EntityStore
         }
         var targetArch = targetStore.GetArchetype(sourceArch.componentTypes, sourceArch.Tags);
         if (targetArch != curTargetArch) {
-            var removedIndexTypes = (curTargetArch.componentTypes.bitSet.l0 & ~targetArch.componentTypes.bitSet.l0) & EntityExtensions.IndexTypesMask;
+            var removedIndexTypes = curTargetArch.componentTypes;
+            removedIndexTypes.Remove(targetArch.componentTypes);
+            removedIndexTypes = ComponentTypes.Intersect(removedIndexTypes, EntityExtensions.IndexTypes);
             // --- remove indexes of removed indexed components
-            if (removedIndexTypes != 0) {
+            if (!removedIndexTypes.IsDefault()) {
                 RemoveIndexedComponents(target, removedIndexTypes);
             }
             // --- move entity targetArch 
@@ -116,7 +116,8 @@ public partial class EntityStore
             node.archetype  = targetArch;
         }
         // bit == 1: update component index.    bit == 0: add component index
-        var updateIndexTypes    = curTargetArch.componentTypes.bitSet.l0 & targetArch.componentTypes.bitSet.l0;
+        var updateIndexTypes    = ComponentTypes.Intersect(curTargetArch.componentTypes, targetArch.componentTypes);
+        updateIndexTypes        = ComponentTypes.Intersect(updateIndexTypes, EntityExtensions.IndexTypes);
         var context             = new CopyContext(source, target);
         Archetype.CopyComponents(sourceArch, targetArch, context, updateIndexTypes);
         
@@ -142,7 +143,7 @@ public partial class EntityStore
         // if (true) {
         
         var context = new CopyContext(entity, clone);
-        Archetype.CopyComponents(archetype, archetype, context, 0);
+        Archetype.CopyComponents(archetype, archetype, context, default);
         
         CloneScrips(entity, clone);
         

@@ -70,7 +70,7 @@ public sealed class CommandBuffer : ICommandBuffer
         internal            bool                hasCommands;
         //
         internal            ComponentTypes      changedComponentTypes;
-        internal readonly   ComponentCommands[] componentCommandTypes;
+        internal            TypeIndexSlotMap<ComponentCommands> componentCommandTypes;
         //
         internal            TagCommand[]        tagCommands;
         internal            int                 tagCommandsCount;
@@ -91,9 +91,8 @@ public sealed class CommandBuffer : ICommandBuffer
         internal            CommandBufferSynced synced;
         
         
-        internal Intern(EntityStore store, ComponentCommands[] componentCommandTypes) {
+        internal Intern(EntityStore store) {
             this.store                  = store;
-            this.componentCommandTypes  = componentCommandTypes;
         }
         
         internal void Reset(bool hasComponentChanges)
@@ -102,8 +101,11 @@ public sealed class CommandBuffer : ICommandBuffer
             {
                 var componentCommands = componentCommandTypes;
                 foreach (var componentType in changedComponentTypes) {
-                    componentCommands[componentType.StructIndex].commandCount = 0;
+                    componentCommands[componentType.StructIndex].Reset();
                 }
+            }
+            if (scriptCommandsCount > 0) {
+                Array.Clear(scriptCommands, 0, scriptCommandsCount);
             }
             hasCommands             = false;
             changedComponentTypes   = default;
@@ -124,9 +126,7 @@ public sealed class CommandBuffer : ICommandBuffer
 #region general methods
     internal CommandBuffer(EntityStore store)
     {
-        var schema      = EntityStoreBase.Static.EntitySchema;
-        var commands    = new ComponentCommands[schema.maxStructIndex];
-        intern = new Intern(store, commands) {
+        intern = new Intern(store) {
             tagCommands     = Array.Empty<TagCommand>(),
             scriptCommands  = Array.Empty<ScriptCommand>(),
             childCommands   = Array.Empty<ChildCommand>(),
@@ -205,10 +205,12 @@ public sealed class CommandBuffer : ICommandBuffer
     
     /// <summary>
     /// Return the resources of the <see cref="CommandBuffer"/> to the <see cref="EntityStore"/>.
+    /// Recorded commands are cleared without execution.
     /// </summary>
     public void ReturnBuffer()
     {
         if (!intern.returnedBuffer) {
+            Clear();
             intern.store.ReturnCommandBuffer(this);
             intern.returnedBuffer = true;
         }
@@ -402,7 +404,7 @@ public sealed class CommandBuffer : ICommandBuffer
         }
     }
     
-    private int GetComponentCommandsCount(ComponentCommands[] componentCommands) {
+    private int GetComponentCommandsCount(TypeIndexSlotMap<ComponentCommands> componentCommands) {
         int count = 0;
         foreach (var componentType in intern.changedComponentTypes) {
             count += componentCommands[componentType.StructIndex].commandCount;
@@ -477,9 +479,8 @@ public sealed class CommandBuffer : ICommandBuffer
             throw CannotReuseCommandBuffer();   
         }
         var structIndex         = StructInfo<T>.Index;
-        intern.hasCommands      = true;
-        intern.changedComponentTypes.bitSet.SetBit(structIndex);
-        var componentCommands   = intern.componentCommandTypes[structIndex];
+        var commandTypes        = intern.componentCommandTypes ??= CreateComponentCommandMap();
+        var componentCommands   = commandTypes[structIndex];
         componentCommands     ??= CreateComponentCommands(structIndex);
         var commands            = (ComponentCommands<T>)componentCommands;
         var count               = commands.commandCount; 
@@ -491,11 +492,18 @@ public sealed class CommandBuffer : ICommandBuffer
         command.change          = change;
         command.entityId        = entityId;
         command.component       = component;
+        intern.hasCommands      = true;
+        intern.changedComponentTypes.bitSet.SetBit(structIndex);
     }
     
     private  ComponentCommands CreateComponentCommands(int structIndex) {
         var componentType = Static.ComponentTypes[structIndex];
         return intern.componentCommandTypes[structIndex] = componentType.CreateComponentCommands();
+    }
+
+    private static TypeIndexSlotMap<ComponentCommands> CreateComponentCommandMap()
+    {
+        return new TypeIndexSlotMap<ComponentCommands>(EntityStoreBase.Static.EntitySchema.maxStructIndex);
     }
     #endregion
     
@@ -550,7 +558,7 @@ public sealed class CommandBuffer : ICommandBuffer
         intern.hasCommands          = true;
         intern.tagCommandsCount     = count + 1;
         ref var command     = ref intern.tagCommands[count];
-        command.tagIndex    = (byte)tagIndex;
+        command.tagIndex    = SchemaTypeIndex.ToUInt16(tagIndex, nameof(tagIndex));
         command.entityId    = entityId;
         command.change      = change;
     }
@@ -587,7 +595,7 @@ public sealed class CommandBuffer : ICommandBuffer
         intern.hasCommands          = true;
         intern.scriptCommandsCount  = count + 1;
         ref var command     = ref intern.scriptCommands[count];
-        command.scriptIndex = (byte)scriptIndex;
+        command.scriptIndex = SchemaTypeIndex.ToUInt16(scriptIndex, nameof(scriptIndex));
         command.action      = action;
         command.entityId    = entityId;
         command.script      = script;
@@ -638,10 +646,7 @@ public sealed class CommandBuffer : ICommandBuffer
         if (intern.returnedBuffer) {
             throw CannotReuseCommandBuffer();
         }
-        int id;
-        lock (intern.componentCommandTypes) {
-            id = intern.store.NewId();
-        }
+        var id      = intern.store.NewIdSynced();
         var count   = intern.entityCommandCount; 
 
         if (count == intern.entityCommands.Length) {
