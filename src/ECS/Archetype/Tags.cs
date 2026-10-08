@@ -20,7 +20,7 @@ namespace Friflo.Engine.ECS;
 [DebuggerTypeProxy(typeof(TagsDebugView))]
 public struct Tags : IEnumerable<TagType>, IEquatable<Tags>
 {
-    internal            BitSet   bitSet;  // 32
+    internal            BitSet   bitSet;  // 40
     
     public readonly     TagsEnumerator  GetEnumerator()                         => new TagsEnumerator (this);
 
@@ -353,7 +353,7 @@ public struct Tags : IEnumerable<TagType>, IEquatable<Tags>
 /// </summary>
 public struct TagsEnumerator : IEnumerator<TagType>
 {
-    private                 BitSetEnumerator    bitSetEnumerator;   // 48
+    private                 BitSetEnumerator    bitSetEnumerator;   // 64
     private static readonly TagType[]           TagTypes = EntityStoreBase.Static.EntitySchema.tags;
 
     // --- IEnumerator

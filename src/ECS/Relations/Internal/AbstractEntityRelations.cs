@@ -34,7 +34,7 @@ internal abstract class AbstractEntityRelations
     
     internal  readonly  EntityStore                 store;
     internal  readonly  IdArrayHeap                 idHeap      = new();
-    internal  readonly  int                         relationBit;
+    internal  readonly  int                         structIndex;
     
     //  --- link relations
     /// map:  indexed / linked entity (id)  ->  entities (ids) containing a <see cref="ILinkRelation"/> referencing the indexed / linked entity.
@@ -48,8 +48,7 @@ internal abstract class AbstractEntityRelations
         this.archetype  = archetype;
         store           = archetype.entityStore;
         this.heap       = heap;
-        var types       = new ComponentTypes(componentType);
-        relationBit     = (int)types.bitSet.l0;
+        structIndex     = componentType.StructIndex;
     }
     
     internal  abstract bool                 AddRelation<TRelation>       (int id, in TRelation relation) where TRelation : struct, IRelation;
@@ -117,7 +116,7 @@ internal abstract class AbstractEntityRelations
         var relations = GetEntityRelations(store, StructInfo<TRelation>.Index);
         relations.positionMap.TryGetValue(id, out var positions);
         int count       = positions.count;
-        var components  = ((StructHeap<TRelation>)relations.heap).components;
+        var components  = ((StructHeap<TRelation>)relations.heap).Components;
         switch (count) {
             case 0: return  new Relations<TRelation>(relations);
             case 1: return  new Relations<TRelation>(components, positions.start, relations);
@@ -150,7 +149,7 @@ internal abstract class AbstractEntityRelations
     internal void ForAllEntityRelations<TRelation>(ForEachEntity<TRelation> lambda)
         where TRelation : struct, IRelation
     {
-        var components  = ((StructHeap<TRelation>)heap).components;
+        var components  = ((StructHeap<TRelation>)heap).Components;
         int count       = archetype.Count;
         var ids         = archetype.entityIds;
         var entityStore = store;
@@ -164,7 +163,7 @@ internal abstract class AbstractEntityRelations
     {
         int count       = archetype.Count;
         var entities    = new Entities(store, archetype.entityIds, 0, count);
-        var components  = ((StructHeap<TRelation>)heap).components;
+        var components  = ((StructHeap<TRelation>)heap).GetComponents();
         var chunk       = new Chunk<TRelation>(components, count, 0);
         return (entities, chunk);
     }
@@ -206,7 +205,7 @@ internal abstract class AbstractEntityRelations
     protected int AddEntityRelation(int id, IdArray positions)
     {
         if (positions.count == 0) {
-            store.nodes[id].isOwner |= relationBit;
+            EntityTypeTracking.AddOwner(store, id, structIndex);
         }
         int position = Archetype.AddEntity(archetype, id);
         positions.Add(position, idHeap);
@@ -237,7 +236,7 @@ internal abstract class AbstractEntityRelations
         Archetype.MoveLastComponentsTo(type, position, false);
         if (positions.count == 1) {
             map.Remove(id);
-            store.nodes[id].isOwner &= ~relationBit;
+            EntityTypeTracking.RemoveOwner(store, id, structIndex);
             return default;
         }
         positions.RemoveAt(positionIndex, localIdHeap);

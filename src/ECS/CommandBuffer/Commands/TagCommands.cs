@@ -13,7 +13,7 @@ internal enum TagChange : byte
 
 internal struct TagCommand
 {
-    internal    byte        tagIndex;   //  1
+    internal    ushort      tagIndex;   //  2
     internal    TagChange   change;     //  1
     internal    int         entityId;   //  4
 

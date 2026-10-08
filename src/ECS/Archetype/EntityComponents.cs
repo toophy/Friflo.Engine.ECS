@@ -68,14 +68,9 @@ public readonly struct EntityComponents : IEnumerable<EntityComponent>
     
     private static bool GetRelationTypes(Entity entity, out ComponentTypes relationTypes)
     {
-        relationTypes  = default;
-        var isOwner = entity.store.nodes[entity.Id].isOwner; 
-        if (isOwner == 0) {
-            return false;
-        }
-        var intersect = isOwner & EntityStoreBase.Static.EntitySchema.relationTypes.bitSet.l0;
-        relationTypes.bitSet.l0 = intersect;
-        return intersect != 0;
+        var ownerTypes = EntityTypeTracking.GetOwnerTypes(entity.store, entity.Id);
+        relationTypes = ComponentTypes.Intersect(ownerTypes, EntityStoreBase.Static.EntitySchema.relationTypes);
+        return !relationTypes.IsDefault();
     }
     
     internal object[] GetComponentArray()

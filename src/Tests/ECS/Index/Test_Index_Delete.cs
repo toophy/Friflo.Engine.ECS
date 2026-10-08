@@ -57,6 +57,49 @@ public static class Test_Index_Delete
         entity3.DeleteEntity();
         AreEqual("{ }",             values.Debug());
     }
+
+    [Test]
+    public static void Test_Index_Delete_NullClassValue()
+    {
+        var store  = new EntityStore();
+        var index  = store.ComponentIndex<IndexedName, string>();
+        var entity = store.CreateEntity(1);
+
+        entity.AddComponent(new IndexedName { name = null });
+        AreEqual(1, index[null].Count);
+
+        entity.DeleteEntity();
+        AreEqual(0, index[null].Count);
+
+        var replacement = store.CreateEntity(1);
+        AreEqual(0, index[null].Count);
+
+        replacement.AddComponent(new IndexedName { name = null });
+        AreEqual(1, index[null].Count);
+        replacement.RemoveComponent<IndexedName>();
+        AreEqual(0, index[null].Count);
+    }
+
+    [Test]
+    public static void Test_Index_Delete_InvalidatesRangeCache()
+    {
+        var store = new EntityStore();
+        var entity1 = store.CreateEntity(
+            new IndexedInt { value = 10 },
+            new IndexedName { name = "a" });
+        var entity2 = store.CreateEntity(
+            new IndexedInt { value = 20 },
+            new IndexedName { name = "b" });
+
+        AreEqual(2, store.Query().ValueInRange<IndexedInt, int>(0, 100).Count);
+        AreEqual(2, store.Query().ValueInRange<IndexedName, string>("a", "z").Count);
+
+        entity1.DeleteEntity();
+
+        AreEqual(1, store.Query().ValueInRange<IndexedInt, int>(0, 100).Count);
+        AreEqual(1, store.Query().ValueInRange<IndexedName, string>("a", "z").Count);
+        IsFalse(entity2.IsNull);
+    }
     
     [Test]
     public static void Test_Index_Delete_Entity()

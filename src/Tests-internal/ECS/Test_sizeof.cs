@@ -24,7 +24,7 @@ public static class Test_sizeof
     [Test]
     public static unsafe void Test_sizeof_StoreExtension() {
         var size = sizeof(StoreExtension);
-        AreEqual(120, size);
+        AreEqual(136, size);
     }
     
     [Test]
@@ -54,33 +54,33 @@ public static class Test_sizeof
     [Test]
     public static unsafe void Test_sizeof_BitSet() {
         var size = sizeof(BitSet);
-        AreEqual(32, size);
+        AreEqual(40, size);
     }
     
     [Test]
     public static unsafe void Test_sizeof_Tags() {
         var size = sizeof(Tags);
-        AreEqual(32, size);
+        AreEqual(40, size);
     }
     
     [Test]
     public static unsafe void Test_sizeof_ComponentTypes() {
         var size = sizeof(ComponentTypes);
-        AreEqual(32, size);
+        AreEqual(40, size);
     }
         
     [Test]
     public static void Test_sizeof_StructIndexes() {
         var type = typeof(SignatureIndexes);
         var size = Marshal.SizeOf(type!);
-        AreEqual(16, size);
+        AreEqual(24, size);
     }
     
     [Test]
     public static void Test_sizeof_TypeCache() {
         var type = typeof(TypeCache);
         var size = Marshal.SizeOf(type!);
-        AreEqual(24, size);
+        AreEqual(28, size);
     }
     
     [Test]
@@ -104,7 +104,7 @@ public static class Test_sizeof
         AreEqual(32, size);
         
         size = sizeof(Chunk<Position>);
-        AreEqual(16, size);
+        AreEqual(24, size);
 
         size = sizeof(Archetypes);
         AreEqual(24, size);

@@ -2,6 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using static Friflo.Engine.ECS.ComponentChangedAction;
 using static System.Diagnostics.DebuggerBrowsableState;
 using Browse = System.Diagnostics.DebuggerBrowsableAttribute;
@@ -16,7 +17,7 @@ internal abstract class ComponentCommands : IComponentStash
 {
     [Browse(Never)] internal            int             commandCount;       //  4
     [Browse(Never)] internal readonly   int             structIndex;        //  4
-    [Browse(Never)] internal readonly   long            indexMask;          //  8
+    [Browse(Never)] internal readonly   bool            hasIndex;           //  1
     
     
     public   abstract object   GetStashDebug();
@@ -24,12 +25,11 @@ internal abstract class ComponentCommands : IComponentStash
     internal abstract void UpdateComponentTypes (Playback playback, bool storeOldComponent);
     internal abstract void ExecuteCommands      (Playback playback);
     internal abstract void SendCommandEvents    (Playback playback);
+    internal abstract void Reset                ();
     
     internal ComponentCommands(int structIndex, Type indexType) {
         this.structIndex = structIndex;
-        if (indexType != null) {
-            indexMask = 1L << structIndex;
-        }
+        hasIndex = indexType != null;
     }
 }
 
@@ -68,7 +68,7 @@ internal sealed class ComponentCommands<T> : ComponentCommands, IComponentStash<
             if (archetype == null) {
                 throw EntityNotFound(command.ToString());
             }
-            if ((archetype.componentTypes.bitSet.l0 & indexMask) != 0) {
+            if (hasIndex && archetype.componentTypes.bitSet.Has(index)) {
                 RemoveIndexedComponent(playback, node, entityId);
             }
 #if NET6_0_OR_GREATER
@@ -103,7 +103,7 @@ internal sealed class ComponentCommands<T> : ComponentCommands, IComponentStash<
     private void RemoveIndexedComponent(Playback playback, in EntityNode node, int entityId)
     {
         var heap = (StructHeap<T>)node.archetype.heapMap[structIndex];
-        heap.componentStash = heap.components[node.compIndex];
+        heap.StashComponent(node.compIndex);
         heap.RemoveIndex(new Entity(playback.store, entityId, node.revision));
     }
     
@@ -111,7 +111,7 @@ internal sealed class ComponentCommands<T> : ComponentCommands, IComponentStash<
     {
         var heap = node.archetype.heapMap[structIndex];
         if (heap != null) {
-            command.oldComponent = ((StructHeap<T>)heap).components[node.compIndex];
+            command.oldComponent = ((StructHeap<T>)heap).GetComponentValue(node.compIndex);
         }
     }
     
@@ -138,7 +138,7 @@ internal sealed class ComponentCommands<T> : ComponentCommands, IComponentStash<
                 // case: RemoveComponent<>() was called after AddComponent<>() or SetComponent<>() on same entity
                 continue;
             }
-            ((StructHeap<T>)heap).components[node.compIndex] = command.component;
+            ((StructHeap<T>)heap).SetComponent(node.compIndex, command.component);
             if (StructInfo<T>.HasIndex) {
                 heap.AddIndex(new Entity(playback.store, command.entityId, node.revision));
             }
@@ -178,6 +178,15 @@ internal sealed class ComponentCommands<T> : ComponentCommands, IComponentStash<
             stashValue = command.oldComponent;
             changed.Invoke(new ComponentChanged(store, entityId, action, index, this));
         }
+    }
+
+    internal override void Reset()
+    {
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) {
+            Array.Clear(componentCommands, 0, commandCount);
+            stashValue = default;
+        }
+        commandCount = 0;
     }
 }
 

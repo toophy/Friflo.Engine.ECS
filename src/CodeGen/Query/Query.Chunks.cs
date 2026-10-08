@@ -151,8 +151,8 @@ public struct ChunkEnumerator<{{args}}> : IEnumerator<Chunks<{{args}}>>
         var heapMap     = archetype.heapMap;
 {{JoinLn(count, n => $"        var chunks{n}     = (StructHeap<T{n}>)heapMap[structIndex{n}];")}}
 
-{{JoinLn(count, n => $"        var chunk{n}      = new Chunk<T{n}>(chunks{n}.components, count, start);")}}
-        var entities    = new ChunkEntities(archetype,      count, start);
+{{JoinLn(count, n => $"        var chunk{n}      = new Chunk<T{n}>(chunks{n}.GetComponents(), count, start);")}}
+        var entities    = new ChunkEntities(archetype,           count, start);
         chunks          = new Chunks<{{args}}>({{Join(count, n => $"chunk{n}", ", ")}}, entities);
         return true;
     SingleEntity:

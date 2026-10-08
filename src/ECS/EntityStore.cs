@@ -159,7 +159,8 @@ public sealed partial class EntityStore : EntityStoreBase
     [Browse(Never)] private             int[]           idBuffer;       //   8
     [Browse(Never)] internal readonly   HashSet<int>    idBufferSet;    //   8
     [Browse(Never)] private  readonly   DataEntity      dataBuffer;     //   8
-                    internal            StoreExtension  extension;      // 112
+    [Browse(Never)] private  readonly   object          idAllocationLock; //  8
+                    internal            StoreExtension  extension;      // 136
                     private             Intern          intern;         //  88
     
     /// <summary>Contains state of <see cref="EntityStore"/> not relevant for application development.</summary>
@@ -209,6 +210,7 @@ public sealed partial class EntityStore : EntityStoreBase
         idBufferSet         = new HashSet<int>();
         recycleIds          = true;
         dataBuffer          = new DataEntity();
+        idAllocationLock    = new object();
         Info                = new EntityStoreInfo(this);
     }
     #endregion

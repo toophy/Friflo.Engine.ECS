@@ -82,9 +82,9 @@ internal static class StructInfo<T>
     // --- static internal
     // Check initialization by directly calling unit test method: Test_SchemaType.Test_SchemaType_StructIndex()
     // readonly improves performance significant
-    internal static readonly    int     Index       = SchemaTypeUtils.GetStructIndex(typeof(T));
+    internal static readonly    int     Index           = SchemaTypeUtils.GetStructIndex(typeof(T));
     
-    internal static readonly    bool    HasIndex    = SchemaTypeUtils.HasIndex(typeof(T));
+    internal static readonly    bool    HasIndex        = SchemaTypeUtils.HasIndex(typeof(T));
     
     // internal static readonly    bool    IsRelation  = SchemaTypeUtils.IsRelation(typeof(T)); obsolete property
 }
@@ -115,7 +115,34 @@ internal sealed class ComponentType<T> : ComponentType
     }
     
     internal override StructHeap CreateHeap() {
-        return new StructHeap<T>(StructIndex);
+        var layout = SimdInfo<T>.Layout;
+        switch (layout)
+        {
+            case Layout.AoS:
+                return new StructHeapGen<T>(StructIndex);
+            case Layout.AoSAligned:
+                switch (SimdInfo<T>.FieldCountSoA) {
+                    case 1: return new StructAoSFloat  <T>(StructIndex);
+                    case 2: return new StructAoSVector2<T>(StructIndex);
+                    case 4: return new StructAoSVector4<T>(StructIndex);
+                }
+                break;
+            case Layout.SoA:
+                switch (SimdInfo<T>.FieldCountSoA) {
+                    case 2: return new StructSoAVector2<T>(StructIndex);
+                    case 3: return new StructSoAVector3<T>(StructIndex);
+                    case 4: return new StructSoAVector4<T>(StructIndex);
+                }
+                break;
+            case Layout.AoSoA:
+                switch (SimdInfo<T>.FieldCountSoA) {
+                    case 2: return new StructAoSoAVector2<T>(StructIndex);
+                    case 3: return new StructAoSoAVector3<T>(StructIndex);
+                    case 4: return new StructAoSoAVector4<T>(StructIndex);
+                }
+                break;
+        }
+        return null;        
     }
     
     internal override ComponentCommands CreateComponentCommands()
@@ -180,6 +207,6 @@ internal sealed class RelationType<T> : ComponentType
     }
     
     internal override StructHeap CreateHeap() {
-        return new StructHeap<T>(StructIndex);
+        return new StructHeapGen<T>(StructIndex);
     }
 }

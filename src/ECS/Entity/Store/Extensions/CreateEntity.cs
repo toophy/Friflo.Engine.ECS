@@ -308,12 +308,10 @@ public static partial class EntityStoreExtensions {
         return new Entity(store, id, revision);
     }
     
-    private static readonly long IndexTypesMask = EntityStoreBase.Static.EntitySchema.indexTypes.bitSet.l0;
+    private static readonly ComponentTypes IndexTypes = EntityStoreBase.Static.EntitySchema.indexTypes;
     
-    private static void UpdateIndexedComponents(Entity entity, Archetype archetype, long indexTypesMask)
+    private static void UpdateIndexedComponents(Entity entity, Archetype archetype, in ComponentTypes indexTypes)
     {
-        var indexTypes = new ComponentTypes();
-        indexTypes.bitSet.l0 = indexTypesMask;
         foreach (var indexType in indexTypes) {
             archetype.heapMap[indexType.StructIndex].AddIndex(entity);
         }
@@ -323,9 +321,9 @@ public static partial class EntityStoreExtensions {
     {
         var store = entity.store;
         // --- add indexed components to indexes
-        var indexTypesMask = archetype.componentTypes.bitSet.l0 & IndexTypesMask;
-        if (indexTypesMask != 0) {
-            UpdateIndexedComponents(entity, archetype, indexTypesMask);
+        var indexTypes = ComponentTypes.Intersect(archetype.componentTypes, IndexTypes);
+        if (!indexTypes.IsDefault()) {
+            UpdateIndexedComponents(entity, archetype, indexTypes);
         }
         // --- create entity event
         store.CreateEntityEvent(entity);

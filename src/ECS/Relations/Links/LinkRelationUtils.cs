@@ -20,9 +20,8 @@ internal static class LinkRelationUtils
         if (index == -1) {
             return; // unexpected. Better safe than sorry. Used belts with suspenders :)
         }
-        var nodes =  componentIndex.store.nodes;
         if (ids.Count == 1) {
-            nodes[target].isLinked   &= ~componentIndex.relationBit;
+            EntityTypeTracking.RemoveLinked(componentIndex.store, target, componentIndex.structIndex);
             map.Remove(target);
             return;
         }
@@ -39,9 +38,8 @@ internal static class LinkRelationUtils
         if (idSpan.IndexOf(id) != -1) {
             return; // unexpected. Better safe than sorry. Used belts with suspenders :)
         }
-        var nodes = componentIndex.store.nodes;
         if (ids.Count == 0) {
-            nodes[target].isLinked   |= componentIndex.relationBit;
+            EntityTypeTracking.AddLinked(componentIndex.store, target, componentIndex.structIndex);
         }
         ids.Add(id, linkHeap);
         map[target] = ids;

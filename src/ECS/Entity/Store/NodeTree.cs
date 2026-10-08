@@ -58,7 +58,7 @@ public partial class EntityStore
             entity.AddComponent<TreeNode>(); // set entity.archetype
             heap = entity.archetype.heapMap[StructInfo<TreeNode>.Index];
         } 
-        return ref ((StructHeap<TreeNode>)heap).components[entity.compIndex];
+        return ref ((StructHeap<TreeNode>)heap).GetComponentRef(entity.compIndex);
     }
     
 #region get / set parent
@@ -507,6 +507,14 @@ public partial class EntityStore
         }
         return id;
     }
+
+    /// <summary>Reserve an entity id for command buffers recording in parallel.</summary>
+    internal int NewIdSynced()
+    {
+        lock (idAllocationLock) {
+            return NewId();
+        }
+    }
     
     /// <remarks> Set <see cref="EntityNode.archetype"/> = null. </remarks>
     internal void DeleteNode(Entity entity)
@@ -517,10 +525,10 @@ public partial class EntityStore
         }
         entityCount--;
         ref var node = ref nodes[id];
-        if (node.isOwner != 0) {
+        if (EntityTypeTracking.HasOwnerTypes(this, id)) {
             RemoveEntityReferences(entity, node);
         }
-        if (node.isLinked != 0) {
+        if (EntityTypeTracking.HasLinkedTypes(this, id)) {
             RemoveLinksToEntity(entity);
         }
         // ClearTreeFlags(nodes, id, NodeFlags.TreeNode); // --- mark its child nodes as floating
@@ -546,12 +554,10 @@ public partial class EntityStore
     
     private void RemoveEntityReferences(Entity entity, in EntityNode node)
     {
-        var indexTypes          = new ComponentTypes();
-        var relationTypes       = new ComponentTypes();
         var schema              = Static.EntitySchema;
-        var isOwner             = node.isOwner;
-        indexTypes.bitSet.l0    = schema.indexTypes.   bitSet.l0 & isOwner; // intersect
-        relationTypes.bitSet.l0 = schema.relationTypes.bitSet.l0 & isOwner; // intersect
+        var ownerTypes          = EntityTypeTracking.GetOwnerTypes(this, entity.Id);
+        var indexTypes          = ComponentTypes.Intersect(ownerTypes, schema.indexTypes);
+        var relationTypes       = ComponentTypes.Intersect(ownerTypes, schema.relationTypes);
         
         // --- remove entity id from component index
         var indexMap = extension.indexMap;
