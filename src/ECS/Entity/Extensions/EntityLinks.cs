@@ -78,7 +78,7 @@ public static partial class EntityExtensions
         var type    = entity.GetArchetype() ?? throw EntityStoreBase.EntityNullException(entity);
         // --- count link components
         var linkTypes   = new ComponentTypes {
-            bitSet = BitSet.Intersect(type.componentTypes.bitSet, schema.linkComponentTypes.bitSet)
+            bitSet = WideBitSet.Intersect(type.componentTypes.bitSet, schema.linkComponentTypes.bitSet)
         };
         // --- count relations components
         int count           = linkTypes.Count;

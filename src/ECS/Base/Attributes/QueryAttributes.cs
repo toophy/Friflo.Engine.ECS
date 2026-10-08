@@ -7,51 +7,13 @@ using System.Numerics;
 // ReSharper disable once CheckNamespace
 namespace Friflo.Engine.ECS;
 
-/// <summary>
-/// Uses a tiled memory layout for internal storage of components types with a single <c>value</c> field of Type
-/// <see cref="Vector2"/>, <see cref="Vector3"/> or <see cref="Vector4"/>.<br/>
-/// This memory layout is crucial for high performance vectorized execution using the
-/// <see href="https://github.com/friflo/Friflo.Vectorization">Friflo.Vectorization</see> source generator.
-/// </summary>
-/// <remarks>
-/// Tiled memory layout.
-/// <list type="bullet">
-///     <item> x,y,z and w are stored in a single pinned float[] array. </item>
-///     <item> Valid data is 32-byte aligned to enable optimal access for L1 cache and vectorization load/store.</item>
-///     <item> The array contains padding elements at its start and at its end.</item>
-/// </list>
-/// <code>
-///     // e.g. for Vector2
-///     [AoSoA] public struct Position2 : IComponent { public Vector2 value; }
-///     // layouts
-///     Vector2:   xxxxxxxx yyyyyyyy   xxxxxxxx yyyyyyyy   ...
-///     Vector3:   xxxxxxxx yyyyyyyy zzzzzzzz   xxxxxxxx yyyyyyyy zzzzzzzz   ...
-///     Vector3:   xxxxxxxx yyyyyyyy zzzzzzzz wwwwwwww   xxxxxxxx yyyyyyyy zzzzzzzz wwwwwwww   ...
-///     x, y, z, w are floats stored in a single  float[] array
-/// </code>
-/// </remarks>
+[AttributeUsage(AttributeTargets.Struct)]
+public sealed class AoSAlignedAttribute : Attribute { }
+
 [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
 public sealed class AoSoAAttribute : Attribute { }
 
 
-/// <summary>
-/// Uses a strides memory layout for internal storage of components types with a single <c>value</c> field of Type
-/// <see cref="Vector2"/>, <see cref="Vector3"/> or <see cref="Vector4"/>.<br/>
-/// This memory layout is currently <b>NOT</b> supported by
-/// <see href="https://github.com/friflo/Friflo.Vectorization">Friflo.Vectorization</see> source generator.
-/// </summary>
-/// <remarks>
-/// Strided memory layout.
-/// <code>
-///     // e.g. for Vector2
-///     [SoA] public struct Position2 : IComponent { public Vector2 value; }
-///     // layouts
-///     Vector2:   xxxxxxxx xxxxxxxx ...   yyyyyyyy yyyyyyyy ...
-///     Vector3:   xxxxxxxx xxxxxxxx ...   yyyyyyyy yyyyyyyy ...   zzzzzzzz ...
-///     Vector3:   xxxxxxxx yyyyyyyy zzzzzzzz wwwwwwww   xxxxxxxx yyyyyyyy zzzzzzzz wwwwwwww   ...
-///     x, y, z, w are floats stored in a single float[] array
-/// </code>
-/// </remarks>
 [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class)]
 public sealed class SoAAttribute : Attribute { }
 

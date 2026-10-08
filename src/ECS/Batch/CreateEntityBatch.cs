@@ -45,14 +45,14 @@ public sealed class CreateEntityBatch
     #endregion
 
 #region internal fields
-    [Browse(Never)] internal            TypeIndexSlotMap<BatchComponent> batchComponents; //  8
+    [Browse(Never)] internal            TypeIndexSlotMap<BatchComponent> batchComponents;
     [Browse(Never)] private  readonly   ComponentType[]     componentTypes;     //  8
     [Browse(Never)] private  readonly   EntityStoreBase     store;              //  8
     [Browse(Never)] internal            bool                autoReturn;         //  4
     [Browse(Never)] internal            bool                isReturned;         //  4
     [Browse(Never)] private             Archetype           archetype;          //  8
-    [Browse(Never)] private             Tags                tagsCreate;         // 40
-    [Browse(Never)] private             ComponentTypes      componentsCreate;   // 40
+    [Browse(Never)] private             Tags                tagsCreate;
+    [Browse(Never)] private             ComponentTypes      componentsCreate;
     #endregion
     
 #region general methods

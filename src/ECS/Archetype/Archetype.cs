@@ -84,11 +84,11 @@ public sealed class Archetype
     [Browse(Never)] private             ArchetypeMemory     memory;         // 16   - count & length used to store components in chunks  
     // --- internal
     [Browse(Never)] internal readonly   int                 componentCount; //  4   - number of component types
-    [Browse(Never)] internal readonly   ComponentTypes      componentTypes; // 40   - component types of archetype
-    [Browse(Never)] internal readonly   Tags                tags;           // 40   - tags assigned to archetype
+    [Browse(Never)] internal readonly   ComponentTypes      componentTypes;
+    [Browse(Never)] internal readonly   Tags                tags;
     [Browse(Never)] internal readonly   ArchetypeKey        key;            //  8
-    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
-    [Browse(Never)] internal readonly   StructHeapMap       heapMap;        //  8   - immutable component heap lookup
+    [Browse(Never)] internal readonly   StructHeapMap       heapMap;
+    [Browse(Never)] internal readonly   StructHeap[]        inlineHeapMap;
     [Browse(Never)] internal readonly   EntityStoreBase     store;          //  8   - containing EntityStoreBase
     [Browse(Never)] internal readonly   EntityStore         entityStore;    //  8   - containing EntityStore
     [Browse(Never)] internal readonly   int                 archIndex;      //  4   - archetype index in EntityStore.archs[]
@@ -175,6 +175,7 @@ public sealed class Archetype
         structHeaps     = Array.Empty<StructHeap>();
         entityIds       = new int [memory.capacity];
         heapMap         = EntityStoreBase.Static.DefaultHeapMap;
+        inlineHeapMap   = heapMap.InlineHeaps;
         key             = new ArchetypeKey(this);
         // componentCount   = 0         // has no components
         // componentTypes   = default   // has no components
@@ -194,6 +195,7 @@ public sealed class Archetype
         structHeaps     = new [] { heap };
         entityIds       = new int [memory.capacity];
         heapMap         = new StructHeapMap(heap, config.schema.maxStructIndex);
+        inlineHeapMap   = heapMap.InlineHeaps;
         componentTypes  = new ComponentTypes(structHeaps);
         key             = new ArchetypeKey(this);
         heap.SetArchetypeDebug(this);
@@ -214,6 +216,7 @@ public sealed class Archetype
         structHeaps     = heaps;
         entityIds       = new int [memory.capacity];
         heapMap         = new StructHeapMap(heaps, config.schema.maxStructIndex);
+        inlineHeapMap   = heapMap.InlineHeaps;
         componentTypes  = new ComponentTypes(heaps);
         this.tags       = tags;
         key             = new ArchetypeKey(this);
@@ -449,8 +452,6 @@ public sealed class Archetype
 
 public static class ArchetypeUtils
 {
-    /// <summary> Minimum: 64 see <see cref="MaxComponentMultiple"/> to support padding for vectorization.</summary>
-    /// <remarks> Could be less than 64 if using <see cref="StructPadding{T}.ByteSize"/> for <see cref="StructHeapGen{T}.components"/> </remarks>
     public   const  int     MinCapacity             = 512;
     
     /// <summary> Maximum number of components  </summary>

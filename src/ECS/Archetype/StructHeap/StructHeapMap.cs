@@ -6,13 +6,6 @@ using System.Runtime.CompilerServices;
 // ReSharper disable once CheckNamespace
 namespace Friflo.Engine.ECS;
 
-/// <summary>
-/// Immutable component heap lookup used by an <see cref="Archetype"/>.
-/// </summary>
-/// <remarks>
-/// Component indexes below <see cref="InlineCapacity"/> use a compact direct lookup array.
-/// Higher indexes are stored as a sorted sparse array and resolved with binary search.
-/// </remarks>
 internal sealed class StructHeapMap
 {
     internal const int InlineCapacity = 256;
@@ -20,6 +13,8 @@ internal sealed class StructHeapMap
     private readonly StructHeap[] inline;
     private readonly StructHeap[] overflow;
     private readonly int schemaLength;
+
+    internal StructHeap[] InlineHeaps => inline ?? System.Array.Empty<StructHeap>();
 
     internal int InlineLength => inline?.Length ?? 0;
     internal int OverflowCount => overflow?.Length ?? 0;

@@ -17,7 +17,7 @@ internal abstract class ComponentCommands : IComponentStash
 {
     [Browse(Never)] internal            int             commandCount;       //  4
     [Browse(Never)] internal readonly   int             structIndex;        //  4
-    [Browse(Never)] internal readonly   bool            hasIndex;           //  1
+    [Browse(Never)] internal readonly   bool            hasIndex;
     
     
     public   abstract object   GetStashDebug();

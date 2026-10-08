@@ -7,10 +7,6 @@ using Friflo.Engine.ECS.Utils;
 // ReSharper disable once CheckNamespace
 namespace Friflo.Engine.ECS;
 
-/// <summary>
-/// Tracks indexed component and relation ownership without increasing <see cref="EntityNode"/> size.
-/// Type indexes 0..31 stay inline; higher indexes are stored sparsely per entity.
-/// </summary>
 internal static class EntityTypeTracking
 {
     private const int InlineCapacity = 32;
@@ -79,9 +75,9 @@ internal static class EntityTypeTracking
         extension.linkedTypeOverflow?.Remove(entityId);
     }
 
-    private static ComponentTypes GetTypes(Dictionary<int, BitSet> overflowMap, int entityId, int inlineBits)
+    private static ComponentTypes GetTypes(Dictionary<int, WideBitSet> overflowMap, int entityId, int inlineBits)
     {
-        var bits = default(BitSet);
+        var bits = default(WideBitSet);
         if (overflowMap != null) {
             overflowMap.TryGetValue(entityId, out bits);
         }
@@ -89,15 +85,15 @@ internal static class EntityTypeTracking
         return new ComponentTypes { bitSet = bits };
     }
 
-    private static void SetOverflowBit(ref Dictionary<int, BitSet> overflowMap, int entityId, int typeIndex)
+    private static void SetOverflowBit(ref Dictionary<int, WideBitSet> overflowMap, int entityId, int typeIndex)
     {
-        overflowMap ??= new Dictionary<int, BitSet>();
+        overflowMap ??= new Dictionary<int, WideBitSet>();
         overflowMap.TryGetValue(entityId, out var bits);
         bits.SetBit(typeIndex);
         overflowMap[entityId] = bits;
     }
 
-    private static void ClearOverflowBit(Dictionary<int, BitSet> overflowMap, int entityId, int typeIndex)
+    private static void ClearOverflowBit(Dictionary<int, WideBitSet> overflowMap, int entityId, int typeIndex)
     {
         if (overflowMap == null || !overflowMap.TryGetValue(entityId, out var bits)) return;
         bits.ClearBit(typeIndex);

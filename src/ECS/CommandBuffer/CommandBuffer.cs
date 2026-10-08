@@ -203,10 +203,6 @@ public sealed class CommandBuffer : ICommandBuffer
         }
     }
     
-    /// <summary>
-    /// Return the resources of the <see cref="CommandBuffer"/> to the <see cref="EntityStore"/>.
-    /// Recorded commands are cleared without execution.
-    /// </summary>
     public void ReturnBuffer()
     {
         if (!intern.returnedBuffer) {

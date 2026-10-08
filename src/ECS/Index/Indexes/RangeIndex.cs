@@ -60,8 +60,8 @@ public sealed class RangeIndex<TIndexedComponent,TValue> : GenericComponentIndex
     {
         var map         = entityMap;
         var heap        = idHeap;
-        var components  = ((StructHeap<TIndexedComponent>)archetype.heapMap[structIndex]).Components;
-        TValue value    = components[compIndex].GetIndexedValue();
+        var component   = ((StructHeap<TIndexedComponent>)archetype.heapMap[structIndex]).GetComponentValue(compIndex);
+        TValue value    = component.GetIndexedValue();
         map.TryGetValue(value, out var idArray);
         var idSpan  = idArray.GetSpan(heap, store);
         var index   = idSpan.IndexOf(id);

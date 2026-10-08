@@ -62,7 +62,9 @@ public partial class EntityStoreBase
         }
         
         // --- change archetype
-        var newArchetype = GetArchetype(newComponentTypes, newTags);
+        var newArchetype = newComponentTypes.Equals(archetype.componentTypes) && newTags.Equals(archetype.tags)
+            ? archetype
+            : GetArchetype(newComponentTypes, newTags);
         if (newArchetype != archetype) {
             node.compIndex  = compIndex = Archetype.MoveEntityTo(archetype, entityId, compIndex, newArchetype);
             node.archetype  = newArchetype;

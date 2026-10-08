@@ -54,7 +54,10 @@ public static class Test_sizeof
     [Test]
     public static unsafe void Test_sizeof_BitSet() {
         var size = sizeof(BitSet);
-        AreEqual(40, size);
+        AreEqual(32, size);
+        IsFalse(System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<BitSet>());
+        AreEqual(40, sizeof(WideBitSet));
+        IsTrue(System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<WideBitSet>());
     }
     
     [Test]
@@ -104,7 +107,7 @@ public static class Test_sizeof
         AreEqual(32, size);
         
         size = sizeof(Chunk<Position>);
-        AreEqual(24, size);
+        AreEqual(32, size);
 
         size = sizeof(Archetypes);
         AreEqual(24, size);

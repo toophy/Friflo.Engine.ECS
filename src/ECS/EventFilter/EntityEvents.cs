@@ -31,7 +31,8 @@ public struct EntityEvent
     /// <summary>The id of the changed entity.</summary>
     public      int                 Id;         //  4
 
-    private     ushort              typeIndex;  //  2
+    public      byte                TypeIndex;
+    private     byte                typeIndexHigh;
     
     /// <summary>The change type - add / remove - of a component / tag. </summary>
     public      EntityEventAction   Action;     //  1
@@ -39,10 +40,13 @@ public struct EntityEvent
     /// <summary> The kind - component / tag - of the structural change. </summary>
     public      SchemaTypeKind      Kind;       //  1   - used only for ToString()
 
-    /// <summary> The index in <see cref="EntitySchema"/> properties <see cref="EntitySchema.Components"/> or <see cref="EntitySchema.Tags"/>. </summary>
-    public int TypeIndex {
-        readonly get => typeIndex;
-        set => typeIndex = SchemaTypeIndex.ToUInt16(value, nameof(TypeIndex));
+    public int FullTypeIndex {
+        readonly get => TypeIndex | (typeIndexHigh << 8);
+        set {
+            var index = SchemaTypeIndex.ToUInt16(value, nameof(FullTypeIndex));
+            TypeIndex = unchecked((byte)index);
+            typeIndexHigh = (byte)(index >> 8);
+        }
     }
 
     public override string          ToString() => GetString();
@@ -52,9 +56,9 @@ public struct EntityEvent
         var schema = EntityStoreBase.Static.EntitySchema;
         switch (Kind) {
             case SchemaTypeKind.Component:
-                return $"id: {Id} - {Action} [{schema.components[TypeIndex].Name}]";
+                return $"id: {Id} - {Action} [{schema.components[FullTypeIndex].Name}]";
             case SchemaTypeKind.Tag:
-                return $"id: {Id} - {Action} [#{schema.tags[TypeIndex].Name}]";
+                return $"id: {Id} - {Action} [#{schema.tags[FullTypeIndex].Name}]";
         }
         throw new InvalidOperationException("unexpected kind");
     }
@@ -73,13 +77,13 @@ internal sealed class EntityEvents
 #region fields
     internal            EntityEvent[]           events;             //  8   - never null
     internal            int                     eventCount;         //  4   - number of recorded events
-    internal readonly   Dictionary<int, BitSet> entityChanges;      //  8   - never null
+    internal readonly   Dictionary<int, WideBitSet> entityChanges;      //  8   - never null
     internal            int                     entityChangesPos;   //  4   - last event in events[] added to entityChanges map
     #endregion
     
     internal EntityEvents() {
         events          = Array.Empty<EntityEvent>();
-        entityChanges   = new Dictionary<int, BitSet>();
+        entityChanges   = new Dictionary<int, WideBitSet>();
     }
     
     [ExcludeFromCodeCoverage]
@@ -98,10 +102,10 @@ internal sealed class EntityEvents
         foreach (var ev in eventSpan) {
 #if NET6_0_OR_GREATER
             ref var value = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(changes, ev.Id, out _);
-            value.SetBit(ev.TypeIndex);
+            value.SetBit(ev.FullTypeIndex);
 #else
             changes.TryGetValue(ev.Id, out var value);
-            value.SetBit(ev.TypeIndex);
+            value.SetBit(ev.FullTypeIndex);
             changes[ev.Id] = value;
 #endif
         }

@@ -11,6 +11,18 @@ namespace Tests.ECS.Filter {
 // ReSharper disable once InconsistentNaming
 public static class Test_EventFilter
 {
+    [TestCase(0)] [TestCase(255)] [TestCase(256)] [TestCase(65535)]
+    public static void FullTypeIndexPreservesLegacyByteAndValidatesRange(int index)
+    {
+        var ev = new EntityEvent { FullTypeIndex = index };
+        AreEqual(index, ev.FullTypeIndex);
+        AreEqual(unchecked((byte)index), ev.TypeIndex);
+        Throws<ArgumentOutOfRangeException>(() => ev.FullTypeIndex = -1);
+        Throws<ArgumentOutOfRangeException>(() => ev.FullTypeIndex = 65536);
+        var legacy = new EntityEvent { TypeIndex = 255 };
+        AreEqual(255, legacy.FullTypeIndex);
+    }
+
     [Test]
     public static void Test_EventFilter_Internal()
     {

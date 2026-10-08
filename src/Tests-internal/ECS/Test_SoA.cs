@@ -21,14 +21,14 @@ public static class Test_SoA
     [Test]
     public static void Test_AoSFloat_Chunk_indexer_perf()
     {
-        long repeat = 10; // 10_000_000_000;
+        long repeat = 10;
         var store = new EntityStore();
         store.CreateEntity(new FloatComponent { value = 10 });
         var query = store.Query<FloatComponent>();
         int count = 0;
         foreach (var (pos, FloatComponent) in query.Chunks) {
             count++;
-            _ = pos.GetComponentSpan()[pos.Length]; // no exception - Span has padding
+            _ = pos.GetComponentSpan()[pos.Length];
             for (long n = 0; n < repeat; n++) {
                 _ = pos[0];    
             }
@@ -38,7 +38,6 @@ public static class Test_SoA
     
     const int Count = 10;
     
-    /// Test <see cref="Chunk{T}.GetLanesSoA"/>
     [Test]
     public static void Test_AoSFloat_Query_Lanes()
     {
@@ -49,7 +48,7 @@ public static class Test_SoA
         var query = store.Query<FloatComponent>();
         int count = 0;
         foreach (var (pos, FloatComponent) in query.Chunks) {
-            _ = pos.GetComponentSpan()[pos.Length]; // no exception - Span has padding
+            _ = pos.GetComponentSpan()[pos.Length];
             count++;
             var lanes  = pos.GetComponentSpan();
             Assert32ByteAligned(lanes);
@@ -60,7 +59,6 @@ public static class Test_SoA
         Assert.AreEqual(1, count);
     }
     
-    /// Test <see cref="Chunk{T}.GetLanesSoA"/>
     [Test]
     public static void Test_AoSVector4_Query_Lanes()
     {
@@ -81,7 +79,6 @@ public static class Test_SoA
         Assert.AreEqual(1, count);
     }
     
-    /// Test <see cref="Chunk{T}.GetLanesSoA"/>
     [Test]
     public static void Test_AoSoAVector2_Query_Lanes()
     {
@@ -102,7 +99,6 @@ public static class Test_SoA
         Assert.AreEqual(1, count);
     }
     
-    /// Test <see cref="Chunk{T}.GetLanesSoA"/>
     [Test]
     public static void Test_AoSoAVector3_Query_Lanes()
     {
@@ -123,7 +119,6 @@ public static class Test_SoA
         Assert.AreEqual(1, count);
     }
     
-    /// Test <see cref="Chunk{T}.GetLanesSoA"/>
     [Test]
     public static void Test_AoSoAVector4_Query_Lanes()
     {

@@ -7,13 +7,6 @@ using System.Runtime.CompilerServices;
 // ReSharper disable once CheckNamespace
 namespace Friflo.Engine.ECS;
 
-/// <summary>
-/// Mutable sparse slot lookup for schema type indexes.
-/// </summary>
-/// <remarks>
-/// Low indexes use a lazily grown direct array. High indexes use sorted entries and binary search.
-/// The map retains created slots so pooled owners can reuse them without allocating again.
-/// </remarks>
 internal sealed class TypeIndexSlotMap<TSlot>
     where TSlot : class
 {

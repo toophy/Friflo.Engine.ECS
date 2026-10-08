@@ -45,11 +45,9 @@ public struct EntityNode
     /// <summary>Internally used flags assigned to the entity.</summary>
     public              NodeFlags       Flags       =>  archetype != null ? Created : default;
     
-    /// <summary>Property only used to see inline component names encoded by <see cref="isOwner"/>. </summary>
-    internal            ComponentTypes  IsOwner     =>  new ComponentTypes{ bitSet = new BitSet { l0 = (uint)isOwner } };
+    internal            ComponentTypes  IsOwner     =>  new ComponentTypes{ bitSet = new WideBitSet { l0 = (uint)isOwner } };
     
-    /// <summary>Property only used to see inline component names encoded by <see cref="isLinked"/>. </summary>
-    internal            ComponentTypes  IsLinked    =>  new ComponentTypes{ bitSet = new BitSet { l0 = (uint)isLinked } };
+    internal            ComponentTypes  IsLinked    =>  new ComponentTypes{ bitSet = new WideBitSet { l0 = (uint)isLinked } };
                     
     public   override   string          ToString()  => GetString();
     #endregion
@@ -65,30 +63,8 @@ public struct EntityNode
     // /// <summary> Use <see cref="Is"/> or <see cref="IsNot"/> for read access. </summary>
     // [Browse(Never)] internal NodeFlags       flags;              //  1
     
-    /// <summary>
-    /// Inline bit mask for type indexes 0..31 used by <see cref="AbstractEntityRelations"/> and
-    /// <see cref="AbstractComponentIndex"/> instances.<br/>
-    /// Higher owner type indexes are stored in <see cref="StoreExtension.ownerTypeOverflow"/>.
-    /// </summary>
-    /// <remarks>
-    /// Use <see cref="IsOwner"/> to see <see cref="ComponentTypes"/> by name.<br/>
-    /// This masks prevents the insane cost when deleting an entity.<br/>
-    /// Otherwise, all <see cref="AbstractEntityRelations"/> and <see cref="AbstractComponentIndex"/> instances need to be iterated
-    /// to check if the entity is a key in their Dictionary's and perform required cleanup.
-    /// </remarks>
     [Browse(Never)] internal    int             isOwner;            //  4
     
-    /// <summary>
-    /// Inline bit mask for type indexes 0..31 used by <see cref="EntityIndex"/> and
-    /// <see cref="EntityLinkRelations{TRelation}"/> instances.<br/>
-    /// Higher incoming-link type indexes are stored in <see cref="StoreExtension.linkedTypeOverflow"/>.
-    /// </summary>
-    /// <remarks>
-    /// Use <see cref="IsLinked"/> to see <see cref="ComponentTypes"/> by name.<br/>
-    /// This masks prevents the insane cost when deleting an entity.<br/>
-    /// Otherwise, all <see cref="EntityIndex"/> and <see cref="EntityLinkRelations{TRelation}"/> instances need to be iterated
-    /// to check if the entity is a key in their Dictionary's and perform required cleanup.
-    /// </remarks>
     [Browse(Never)] internal    int             isLinked;           //  4
     
     /// <remarks> Used to avoid enumeration of <see cref="EntityStore.Intern.signalHandlers"/> </remarks>

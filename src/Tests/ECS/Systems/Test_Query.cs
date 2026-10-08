@@ -193,7 +193,7 @@ public static class Test_Query
     }
     
     private static void AssertChunkExtensions(ArchetypeQuery<Position, Rotation, Scale3, Transform, EntityName> query) {
-    /* CHUNK_DEPRECATED
+
         foreach (var chunk in query.Chunks) {
             var length = chunk.Entities.Length;
             
@@ -208,7 +208,7 @@ public static class Test_Query
             //
             Mem.AreEqual(length, chunk.Chunk4.     AsSpanMatrix4x4().Length);
             Mem.AreEqual(length, chunk.Chunk4.Span.AsSpanMatrix4x4().Length);
-        } */
+        }
     }
     
     private static EntityStore SetupTestStore() {
@@ -224,8 +224,7 @@ public static class Test_Query
         store.SetStoreRoot(root);
         return store;
     }
-     
-    /* CHUNK_DEPRECATED
+    
     [Test]
     public static void Test_Query_Chunk_StepVector()
     {
@@ -248,8 +247,7 @@ public static class Test_Query
             Mem.AreEqual(8,  intComponent.StepSpan256);
             Mem.AreEqual(16, intComponent.StepSpan512);
         }
-    } 
-    
+    }
     
     [Test]
     public static void Test_Query_Chunk_Padding() {
@@ -290,7 +288,7 @@ public static class Test_Query
             }
             archetype.CreateEntity();
         }
-    } */
+    }
 }
 
 }

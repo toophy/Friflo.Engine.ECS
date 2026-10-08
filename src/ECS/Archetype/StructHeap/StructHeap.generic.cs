@@ -27,7 +27,7 @@ internal sealed class StructHeapGen<T> : StructHeap<T>
 
     // Note: Should not contain any other field. See class <remarks>
     // --- internal fields
-    private         T[]     components;     //  8
+    internal        T[]     components;
     
     internal StructHeapGen(int structIndex)
         : base (structIndex)
@@ -51,7 +51,6 @@ internal sealed class StructHeapGen<T> : StructHeap<T>
         throw new InvalidOperationException($"Component '{typeof(T).Name}' is stored as AoS. GetSoA() requires SoA storage. Add [SoA] attribute or use GetComponent() instead.");
     }
     
-    // --- StructHeap
     internal override void StashComponent(int compIndex) {
         componentStash = components[compIndex];
     }

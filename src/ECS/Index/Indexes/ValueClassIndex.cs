@@ -52,8 +52,8 @@ internal sealed class ValueClassIndex<TIndexedComponent,TValue> : GenericCompone
     internal override void RemoveEntityFromIndex(int id, Archetype archetype, int compIndex)
     {
         var heap        = idHeap;
-        var components  = ((StructHeap<TIndexedComponent>)archetype.heapMap[structIndex]).Components;
-        TValue value    = components[compIndex].GetIndexedValue();
+        var component   = ((StructHeap<TIndexedComponent>)archetype.heapMap[structIndex]).GetComponentValue(compIndex);
+        TValue value    = component.GetIndexedValue();
         IdArray idArray;
         if (value == null) {
             idArray = nullValue;

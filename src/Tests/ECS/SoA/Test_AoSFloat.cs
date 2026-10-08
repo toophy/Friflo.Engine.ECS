@@ -23,7 +23,7 @@ public static class Test_AoSFloat
         var entity1 = store.CreateEntity();
         var entity2 = store.CreateEntity();
         var entity3 = store.CreateEntity();
-        
+
         var pos1 = new FloatComponent { value = 11 };
         var pos2 = new FloatComponent { value = 22 };
         var pos3 = new FloatComponent { value = 31 };
@@ -41,32 +41,31 @@ public static class Test_AoSFloat
                     break;
             }
         };
-        
+
         entity1.AddComponent(pos1);
         var result1 = entity1.GetComponent<FloatComponent>();
         AreEqual(result1.value, pos1.value);
-        
+
         entity2.AddComponent(pos2);
         var result2 = entity2.GetComponent<FloatComponent>();
         AreEqual(result2.value, pos2.value);
-        
+
         entity3.AddComponent(pos3);
         var result3 = entity3.GetSoA<FloatComponent>();
         AreEqual(result3.value, pos3.value);
-        
+
         entity1.RemoveComponent<FloatComponent>();
-        
+
         result2 = entity2.GetSoA<FloatComponent>();
         AreEqual(result2.value, pos2.value);
-        
+
         result3 = entity3.GetSoA<FloatComponent>();
         AreEqual(result3.value, pos3.value);
-        
+
         IsTrue(entity3.TryGetComponent(out FloatComponent tryGet));
         AreEqual(tryGet.value, pos3.value);
     }
-    
-    /// Test <see cref="StructSoAVector2{T}.CopyComponentTo"/>
+
     [Test]
     public static void Test_AoSFloat_SoA_Add_Tag()
     {
@@ -77,16 +76,15 @@ public static class Test_AoSFloat
         var entity1 = store.CreateEntity(pos1);
         var entity2 = store.CreateEntity(pos2);
         var entity3 = store.CreateEntity(pos3);
-        
+
         entity1.AddTag<General.MyTag1>();
         entity2.AddTag<General.MyTag2>();
-        
+
         AreEqual(pos1.value, entity1.GetSoA<FloatComponent>().value);
         AreEqual(pos2.value, entity2.GetSoA<FloatComponent>().value);
         AreEqual(pos3.value, entity3.GetSoA<FloatComponent>().value);
     }
 
-    /// Test <see cref="StructSoAVector2{T}.ResizeComponents"/>
     [Test]
     public static void Test_AoSFloat_SoA_Check_ResizeComponents()
     {
@@ -142,40 +140,37 @@ public static class Test_AoSFloat
         }
         AreEqual(0, query.Count);
     }
-    
+
     [Test]
     public static void Test_AoSFloat_SoA_Entity_exceptions()
     {
         var store = new EntityStore();
         var entitySoA = store.CreateEntity(new FloatComponent());
         var entityAoS = store.CreateEntity(new Position());
-        
+
         var e = Throws<InvalidOperationException>(() => {
             entityAoS.GetSoA<Position>();
         });
         AreEqual("Component 'Position' is stored as AoS. GetSoA() requires SoA storage. Add [SoA] attribute or use GetComponent() instead.", e!.Message);
     }
-    
-    /// Test <see cref="StructSoAVector2{T}.Write"/>
-    /// Test <see cref="StructSoAVector2{T}.Read"/>
+
     [Test]
     public static void Test_AoSFloat_SoA_serialize()
     {
         var store = new EntityStore();
         var pos = new FloatComponent { value = 11 };
         var entity = store.CreateEntity(pos);
-        
+
         EntityConverter converter = new EntityConverter();
         var dataEntity = converter.EntityToDataEntity(entity, null, false);
         AreEqual("{\"FloatComponent\":{\"value\":11}}", dataEntity.components.ToString());
-        
+
         var targetStore = new EntityStore();
         var targetEntity = converter.DataEntityToEntity(dataEntity, targetStore, out var error);
         AreEqual(pos.value, targetEntity.GetSoA<FloatComponent>().value);
         IsNull(error);
     }
-    
-    /// Test <see cref="StructSoAVector2{T}.GetComponentMember"/>
+
     [Test]
     public static void Test_AoSFloat_SoA_GetEntityComponentMember()
     {
@@ -185,7 +180,7 @@ public static class Test_AoSFloat
         var componentType   = typeof(FloatComponent);
         var pos3Info = MemberPath.Get(componentType, nameof(FloatComponent.value));
         IsTrue(EntityUtils.GetEntityComponentMember<float>(entity, pos3Info, out var vector3, out _));
-        
+
         AreEqual(11,                                vector3);
         AreEqual("value",                           pos3Info.path);
         AreEqual("value",                           pos3Info.name);
@@ -197,8 +192,7 @@ public static class Test_AoSFloat
         NotNull ("value",                           pos3Info.memberInfo.Name);
         AreEqual("FloatComponent value : Single",   pos3Info.ToString());
     }
-    
-    /// Test <see cref="StructSoAVector2{T}.SetComponentMember"/>
+
     [Test]
     public static void Test_AoSFloat_SoA_SetEntityComponentMember()
     {
@@ -207,7 +201,7 @@ public static class Test_AoSFloat
         var entity = store.CreateEntity(pos);
         var componentType   = typeof(FloatComponent);
         var nameInfo = MemberPath.Get(componentType, nameof(FloatComponent.value));
-        
+
         float newPos = 101;
         OnMemberChanged<FloatComponent> handler = (ref FloatComponent value, Entity entity1, string path, in FloatComponent old) => {
             AreEqual(1,         entity1.Id);
@@ -219,23 +213,21 @@ public static class Test_AoSFloat
         var result = entity.GetSoA<FloatComponent>();
         AreEqual(newPos, result.value);
     }
-    
-    /// Test <see cref="StructSoAVector2{T}.CopyComponent"/>
+
     [Test]
     public static void Test_AoSFloat_SoA_CopyEntity()
     {
         var store       = new EntityStore();
         var pos         = new FloatComponent { value = 11 };
         var srcEntity   = store.CreateEntity(pos);
-        
+
         var target  = new EntityStore();
         var targetEntity = target.CreateEntity();
         srcEntity.CopyEntity(targetEntity);
-        
+
         AreEqual(pos.value, targetEntity.GetSoA<FloatComponent>().value);
     }
-    
-    /// Test <see cref="StructSoAVector2{T}.SetBatchComponent"/>
+
     [Test]
     public static void Test_AoSFloat_SoA_Batch_CreateEntity()
     {
@@ -244,11 +236,10 @@ public static class Test_AoSFloat
         var pos = new FloatComponent { value = 11 };
         batch.Add(pos);
         var entity = batch.CreateEntity();
-        
+
         AreEqual(pos.value, entity.GetSoA<FloatComponent>().value);
     }
-    
-    /// Test <see cref="StructSoAVector2{T}.GetComponentDebug"/>
+
     [Test]
     public static void Test_AoSFloat_SoA_GetEntityComponent()
     {
@@ -257,12 +248,11 @@ public static class Test_AoSFloat
         var entity = store.CreateEntity(pos);
         var schema          = EntityStore.GetEntitySchema();
         var componentType   = schema.ComponentTypeByType[typeof(FloatComponent)];
-        
+
         var result = (FloatComponent)EntityUtils.GetEntityComponent(entity, componentType);
         AreEqual(pos.value, result.value);
     }
-    
-    /// Test <see cref="StructSoAVector2{T}.SetComponentsDefault"/>
+
     [Test]
     public static void Test_AoSFloat_SoA_Archetype_CreateEntities()
     {
@@ -271,17 +261,16 @@ public static class Test_AoSFloat
         var entity1 = store.CreateEntity(pos);
         var entity2 = store.CreateEntity(pos);
         var archetype = entity1.Archetype;
-        
+
         entity1.DeleteEntity();
         entity2.DeleteEntity();
-        
+
         var entities = archetype.CreateEntities(2);
         foreach (var entity in entities) {
             AreEqual(new float(), entity.GetSoA<FloatComponent>().value);
         }
     }
-    
-    /// Test <see cref="Chunk{T}.GetLanesSoA"/>
+
     [Test]
     public static void Test_AoSFloat_Query_Lanes()
     {
@@ -298,7 +287,7 @@ public static class Test_AoSFloat
                 var expect = new FloatComponent { value = i * 10 };
                 That(value.value, Is.EqualTo(expect.value));
                 That(positionSpan[i].value, Is.EqualTo(expect.value));
-                
+
                 expect.value += 100;
                 value.value = expect.value;
                 positions[i] = value;
@@ -306,10 +295,10 @@ public static class Test_AoSFloat
                 That(value.value, Is.EqualTo(expect.value));
             }
             count++;
-            
+
             var e = Throws<InvalidOperationException>(() => { _ = positions.GetLanesSoA(); });
             AreEqual("Expect call for SoA component data.", e!.Message);
-            
+
         }
         AreEqual(1, count);
     }

@@ -22,3 +22,7 @@ coverage.cobertura.xml
 
 ## Test Coverage Rport folder
 Report/
+
+/.scratch/
+TestResults/
+*.trx

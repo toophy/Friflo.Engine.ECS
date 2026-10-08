@@ -30,10 +30,10 @@ public readonly struct  TagsChanged
     public  readonly    int         EntityId;   //  4
     
     /// <summary>The new state of the <see cref="Entity"/> <see cref="ECS.Entity.Tags"/>.</summary>
-    public  readonly    Tags        Tags;       // 40
+    public  readonly    Tags        Tags;
     
     /// <summary>The old state of the <see cref="Entity"/> <see cref="ECS.Entity.Tags"/> before the change.</summary>
-    public  readonly    Tags        OldTags;    // 40
+    public  readonly    Tags        OldTags;
     
     // --- properties
     /// <summary>The <see cref="Entity"/> that emitted the event - aka the publisher.</summary>
@@ -56,7 +56,7 @@ public readonly struct  TagsChanged
     /// }
     /// </code>
     /// </remarks>
-    public              Tags        AddedTags   => new(BitSet.Added  (OldTags.bitSet, Tags.bitSet));
+    public              Tags        AddedTags   => new(WideBitSet.Added  (OldTags.bitSet, Tags.bitSet));
     
     /// <summary>The <see cref="ECS.Tags"/> removed from the <see cref="Entity"/>.</summary>
     /// <remarks>
@@ -75,10 +75,10 @@ public readonly struct  TagsChanged
     /// }
     /// </code>
     /// </remarks>
-    public              Tags        RemovedTags => new(BitSet.Removed(OldTags.bitSet, Tags.bitSet));
+    public              Tags        RemovedTags => new(WideBitSet.Removed(OldTags.bitSet, Tags.bitSet));
     
     /// <summary>The changed (removed / added) entity <see cref="ECS.Tags"/>.</summary>
-    public              Tags        ChangedTags => new(BitSet.Changed(OldTags.bitSet, Tags.bitSet));
+    public              Tags        ChangedTags => new(WideBitSet.Changed(OldTags.bitSet, Tags.bitSet));
     
     public override     string      ToString()  => GetString();
 

@@ -6,10 +6,10 @@ namespace Friflo.Engine.ECS;
 
 internal struct TypeCache
 {
-    private ushort  type0;  //  2
-    private ushort  type1;  //  2
-    private ushort  type2;  //  2
-    private ushort  type3;  //  2
+    private ushort  type0;
+    private ushort  type1;
+    private ushort  type2;
+    private ushort  type3;
     
     private int     index0; //  4
     private int     index1; //  4
