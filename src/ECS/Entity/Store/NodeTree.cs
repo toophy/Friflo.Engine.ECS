@@ -508,7 +508,6 @@ public partial class EntityStore
         return id;
     }
 
-    /// <summary>Reserve an entity id for command buffers recording in parallel.</summary>
     internal int NewIdSynced()
     {
         lock (idAllocationLock) {

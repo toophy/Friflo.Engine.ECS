@@ -55,8 +55,8 @@ internal partial struct StoreExtension
     
 #region component indices
     internal                        AbstractComponentIndex[]    indexMap;                   //  8   - map & its component indexes created on demand
-    internal                        Dictionary<int, WideBitSet>     ownerTypeOverflow;          //  8   - high indexed/relation type bits by entity id
-    internal                        Dictionary<int, WideBitSet>     linkedTypeOverflow;         //  8   - high incoming-link type bits by entity id
+    internal                        Dictionary<int, WideBitSet>     ownerTypeOverflow;
+    internal                        Dictionary<int, WideBitSet>     linkedTypeOverflow;
     #endregion
     
 #region entity relations

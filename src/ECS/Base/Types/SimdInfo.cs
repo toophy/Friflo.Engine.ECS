@@ -44,16 +44,14 @@ internal static class SimdUtils
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2090", Justification = "NativeAOT registration preserves public fields of component and relation types.")]
     internal static int GetFieldCountSoA<T>()
     {
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) return 0;
         var type        = typeof(T);
-        var fields = type.GetFields();
+        var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
         foreach (var field in fields)
         {
             var dimension = GetDimension(field);
             if (dimension > 0) {
-                if (Unsafe.SizeOf<T>() != dimension * 4) {
-                    return 0;
-                }
-                return dimension;
+                return Unsafe.SizeOf<T>() == dimension * 4 ? dimension : 0;
             }
         }
         return 0;
@@ -79,6 +77,10 @@ internal static class SimdUtils
         foreach (var attr in type.CustomAttributes)
         {
             var attributeType = attr.AttributeType;
+            if ((attributeType == typeof(AoSoAAttribute) || attributeType == typeof(SoAAttribute) ||
+                 attributeType == typeof(AoSAlignedAttribute)) && typeof(IRelation).IsAssignableFrom(type)) {
+                throw new ArgumentException($"Relation '{type.Name}' does not support explicit component layouts.");
+            }
             if (attributeType == typeof(AoSoAAttribute)) {
                 if (fieldCount == 2 || fieldCount == 3 || fieldCount == 4) return Layout.AoSoA;
                 throw new ArgumentException($"Component '{type.Name}' does not support AoSoA storage.");

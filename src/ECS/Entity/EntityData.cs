@@ -54,23 +54,14 @@ public readonly ref struct EntityData
         return heapMap[StructInfo<T>.Index] != null;
     }
     
-    /// <summary>Return the component of the given type as a reference.</summary>
-    /// <exception cref="NullReferenceException"> if the entity is deleted or has no component of Type <typeparamref name="T"/></exception>
-    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public  ref T       Get<T>() where T : struct, IComponent {
-        return ref ((StructHeap<T>)heapMap[StructInfo<T>.Index]).GetComponentRef(compIndex); // SOA
+        return ref ((StructHeap<T>)heapMap[StructInfo<T>.Index]).GetComponentRef(compIndex);
     }
     
-    /// <summary>
-    /// Gets the component of the specififed type.<br/>
-    /// Returns true if the entity contains a component of specified type. Otherwise false.
-    /// </summary>
-    /// <exception cref="NullReferenceException"> if the entity is deleted.</exception>
-    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public  bool        TryGet<T>(out T value) where T : struct, IComponent {
         var type = heapMap[StructInfo<T>.Index];
         if (type != null) {
-            value =  ((StructHeap<T>)type).GetComponentValue(compIndex); // SOA
+            value =  ((StructHeap<T>)type).GetComponentValue(compIndex);
             return true;
         }
         value = default;

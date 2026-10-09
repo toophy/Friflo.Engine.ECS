@@ -37,7 +37,7 @@ public struct ComponentTypes : IEnumerable<ComponentType>, IEquatable<ComponentT
     #endregion
     
 #region interal field
-    internal        WideBitSet  bitSet;     // 40
+    internal        WideBitSet  bitSet;
     #endregion
 
 #region enumerator    
@@ -486,7 +486,7 @@ public struct ComponentTypes : IEnumerable<ComponentType>, IEquatable<ComponentT
 /// </summary>
 public struct ComponentTypesEnumerator : IEnumerator<ComponentType>
 {
-    internal                WideBitSetEnumerator    bitSetEnumerator;   // 64
+    internal                WideBitSetEnumerator    bitSetEnumerator;
     
     private static readonly ComponentType[]     Components = EntityStoreBase.Static.EntitySchema.components;
 

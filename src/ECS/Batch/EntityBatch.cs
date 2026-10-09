@@ -75,15 +75,15 @@ public sealed class  EntityBatch
     #endregion
 
 #region internal fields
-    [Browse(Never)] internal            TypeIndexSlotMap<BatchComponent> batchComponents; //  8
+    [Browse(Never)] internal            TypeIndexSlotMap<BatchComponent> batchComponents;
     [Browse(Never)] private  readonly   ComponentType[]     componentTypes;     //  8
     [Browse(Never)] internal readonly   EntityStoreBase     store;              //  8   - used only if owner == EntityStore
     [Browse(Never)] internal            int                 entityId;           //  4   - used only if owner == EntityStore
     [Browse(Never)] internal            BatchOwner          owner;              //  4
-    [Browse(Never)] internal            Tags                tagsAdd;            // 40
-    [Browse(Never)] internal            Tags                tagsRemove;         // 40
-    [Browse(Never)] internal            ComponentTypes      componentsAdd;      // 40
-    [Browse(Never)] internal            ComponentTypes      componentsRemove;   // 40
+    [Browse(Never)] internal            Tags                tagsAdd;
+    [Browse(Never)] internal            Tags                tagsRemove;
+    [Browse(Never)] internal            ComponentTypes      componentsAdd;
+    [Browse(Never)] internal            ComponentTypes      componentsRemove;
     #endregion
     
 #region general methods

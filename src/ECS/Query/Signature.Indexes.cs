@@ -16,18 +16,18 @@ namespace Friflo.Engine.ECS;
 /// </summary>
 internal readonly struct SignatureIndexes
 {
-    internal readonly   int     length; // 4    - values: [1, 10] ensured by constructors
+    internal readonly   int     length;
     
-    internal readonly   ushort  T1;     // 2
-    internal readonly   ushort  T2;     // 2
-    internal readonly   ushort  T3;     // 2
-    internal readonly   ushort  T4;     // 2
-    internal readonly   ushort  T5;     // 2
-    private  readonly   ushort  T6;     // 2
-    private  readonly   ushort  T7;     // 2
-    private  readonly   ushort  T8;     // 2
-    private  readonly   ushort  T9;     // 2
-    private  readonly   ushort  T10;    // 2
+    internal readonly   ushort  T1;
+    internal readonly   ushort  T2;
+    internal readonly   ushort  T3;
+    internal readonly   ushort  T4;
+    internal readonly   ushort  T5;
+    private  readonly   ushort  T6;
+    private  readonly   ushort  T7;
+    private  readonly   ushort  T8;
+    private  readonly   ushort  T9;
+    private  readonly   ushort  T10;
     
     public   SignatureIndexesEnumerator GetEnumerator() => new (this);
     
@@ -242,7 +242,7 @@ internal readonly struct SignatureIndexes
 
 internal struct SignatureIndexesEnumerator
 {
-    private readonly    SignatureIndexes    indexes;    // 24
+    private readonly    SignatureIndexes    indexes;
     private             int                 index;      //  4
     
     internal SignatureIndexesEnumerator(in SignatureIndexes indexes)

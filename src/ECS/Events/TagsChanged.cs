@@ -30,10 +30,10 @@ public readonly struct  TagsChanged
     public  readonly    int         EntityId;   //  4
     
     /// <summary>The new state of the <see cref="Entity"/> <see cref="ECS.Entity.Tags"/>.</summary>
-    public  readonly    Tags        Tags;       // 40
+    public  readonly    Tags        Tags;
     
     /// <summary>The old state of the <see cref="Entity"/> <see cref="ECS.Entity.Tags"/> before the change.</summary>
-    public  readonly    Tags        OldTags;    // 40
+    public  readonly    Tags        OldTags;
     
     // --- properties
     /// <summary>The <see cref="Entity"/> that emitted the event - aka the publisher.</summary>

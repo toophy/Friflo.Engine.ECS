@@ -45,15 +45,15 @@ public class QueryFilter
     #endregion
     
 #region private fields
-    [Browse(Never)] private     Tags            allTags;                    //  40  entity must have all tags
-    [Browse(Never)] private     Tags            anyTags;                    //  40  entity must have any tag
-    [Browse(Never)] private     Tags            withoutAllTags;             //  40  entity must not have all tags
-    [Browse(Never)] private     Tags            withoutAnyTags;             //  40  entity must not have any tag
+    [Browse(Never)] private     Tags            allTags;
+    [Browse(Never)] private     Tags            anyTags;
+    [Browse(Never)] private     Tags            withoutAllTags;
+    [Browse(Never)] private     Tags            withoutAnyTags;
          
-    [Browse(Never)] private     ComponentTypes  allComponents;              //  40  entity must have all component types
-    [Browse(Never)] private     ComponentTypes  anyComponents;              //  40  entity must have any component types
-    [Browse(Never)] private     ComponentTypes  withoutAllComponents;       //  40  entity must not have all component types
-    [Browse(Never)] private     ComponentTypes  withoutAnyComponents;       //  40  entity must not have any component types
+    [Browse(Never)] private     ComponentTypes  allComponents;
+    [Browse(Never)] private     ComponentTypes  anyComponents;
+    [Browse(Never)] private     ComponentTypes  withoutAllComponents;
+    [Browse(Never)] private     ComponentTypes  withoutAnyComponents;
                     
     [Browse(Never)] private     int             withoutAllTagsCount;        //   8
     [Browse(Never)] private     int             anyTagsCount;               //   8

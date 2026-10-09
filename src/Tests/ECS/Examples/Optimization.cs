@@ -77,7 +77,6 @@ public static void ParallelQueryJob()
 }
 
 #if !UNITY_5_3_OR_NEWER
-/* CHUNK_DEPRECATED
 [Test]
 public static void QueryVectorization()
 {
@@ -98,7 +97,7 @@ public static void QueryVectorization()
             result.CopyTo(slice);
         }
     }
-} */
+}
 #endif
 
 [Test]

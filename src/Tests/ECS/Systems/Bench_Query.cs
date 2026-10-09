@@ -43,7 +43,6 @@ public static class Bench_Query
             ++comps[n].a;
         }
     }
-    /* CHUNK_DEPRECATED
     [Test]
     public static void Test_Bench()
     {
@@ -138,7 +137,6 @@ public static class Bench_Query
         return Vector256.Create<byte>(oneBytes);
     }
 #endif
-*/
 }
 
 }

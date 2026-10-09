@@ -391,9 +391,6 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
         return type.heapMap[StructInfo<T>.Index] != null;
     }
     
-    /// <summary>Return the component of the given type as a reference.</summary>
-    /// <exception cref="NullReferenceException"> if entity has no component of Type <typeparamref name="T"/></exception>
-    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public  ref T   GetComponent<T>()   where T : struct, IComponent {
         ref var node = ref store.nodes[Id];
         if (node.IsAlive(Revision)) {
@@ -402,7 +399,6 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
         throw EntityNullException();
     }
     
-    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public bool     TryGetComponent<T>(out T result) where T : struct, IComponent
     {
         var node    = store.nodes[Id];
@@ -460,12 +456,7 @@ public readonly partial struct Entity : IEquatable<Entity>, IComparable<Entity>
     #endregion
 
 
-    // ------------------------------------ SoA component methods ---------------------------------
 #region SoA components
-    /// <summary>Returns the component of a component type annotated with an <see cref="AoSoAAttribute"/> or
-    /// <see cref="SoAAttribute"/> attribute.</summary>
-    /// <exception cref="NullReferenceException"> if entity has no component of Type <typeparamref name="T"/></exception>
-    /// <remarks>Uses direct lookup for low component indexes and sparse lookup for high component indexes.</remarks>
     public  T   GetSoA<T>()   where T : struct, IComponent {
         ref var node = ref store.nodes[Id];
         if (node.IsAlive(Revision)) {

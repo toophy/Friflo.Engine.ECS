@@ -7,10 +7,6 @@ using Friflo.Engine.ECS.Utils;
 // ReSharper disable once CheckNamespace
 namespace Friflo.Engine.ECS;
 
-/// <summary>
-/// Tracks indexed component and relation ownership without increasing <see cref="EntityNode"/> size.
-/// Type indexes 0..31 stay inline; higher indexes are stored sparsely per entity.
-/// </summary>
 internal static class EntityTypeTracking
 {
     private const int InlineCapacity = 32;

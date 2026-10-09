@@ -4,6 +4,7 @@ using Friflo.Engine.ECS;
 using Tests.ECS;
 using Tests.ECS.Index;
 using Tests.ECS.Relations;
+using LayoutValidation = Tests.SoA.Test_ExplicitLayoutValidation;
 
 // [Testing Your Native AOT Applications - .NET Blog](https://devblogs.microsoft.com/dotnet/testing-your-native-aot-dotnet-apps/)
 // > Parallelize() is ignored in NativeOAT unit tests  => tests run in parallel
@@ -17,6 +18,7 @@ public class Test_AOT
 {
     [TestMethod]
     [DataRow(0)] [DataRow(1)] [DataRow(2)] [DataRow(3)] [DataRow(4)]
+    [DataRow(5)] [DataRow(6)] [DataRow(7)] [DataRow(8)]
     public void Test_AOT_UnsupportedExplicitLayouts(int shape)
     {
         CreateSchema();
@@ -26,6 +28,10 @@ public class Test_AOT
             case 2: AssertUnsupportedLayout<Tests.SoA.Test_ExplicitLayoutValidation.SoAInteger>("SoA"); break;
             case 3: AssertUnsupportedLayout<Tests.SoA.Test_ExplicitLayoutValidation.AoSoAInteger>("AoSoA"); break;
             case 4: AssertUnsupportedLayout<Tests.SoA.Test_ExplicitLayoutValidation.AlignedInteger>("aligned AoS"); break;
+            case 5: AssertUnsupportedLayout<LayoutValidation.SoAStaticValue>("SoA"); break;
+            case 6: AssertUnsupportedLayout<LayoutValidation.AoSoAStaticValue>("AoSoA"); break;
+            case 7: AssertUnsupportedLayout<LayoutValidation.AlignedStaticValue>("aligned AoS"); break;
+            case 8: AssertUnsupportedLayout<LayoutValidation.SoAStaticUnmanagedValue>("SoA"); break;
         }
     }
 
@@ -37,6 +43,59 @@ public class Test_AOT
         StringAssert.Contains(error.Message, typeof(T).Name);
         StringAssert.Contains(error.Message, layout + " storage");
         Assert.AreEqual(0, store.Count);
+    }
+
+    [TestMethod]
+    [DataRow(0)] [DataRow(1)] [DataRow(2)]
+    public void Test_AOT_UnsupportedRelationLayouts(int layout)
+    {
+        CreateSchema();
+        switch (layout) {
+            case 0: AssertUnsupportedRelation<LayoutValidation.SoARelation>(); break;
+            case 1: AssertUnsupportedRelation<LayoutValidation.AoSoARelation>(); break;
+            case 2: AssertUnsupportedRelation<LayoutValidation.AlignedRelation>(); break;
+        }
+    }
+
+    private static void AssertUnsupportedRelation<T>() where T : struct, IRelation<float>
+    {
+        var store = new EntityStore();
+        var entity = store.CreateEntity();
+        var error = Assert.ThrowsException<TypeInitializationException>(() => entity.AddRelation(default(T))).GetBaseException();
+        Assert.IsInstanceOfType(error, typeof(ArgumentException));
+        StringAssert.Contains(error.Message, typeof(T).Name);
+        StringAssert.Contains(error.Message, "Relation");
+        Assert.IsFalse(entity.TryGetRelation<T, float>(0, out _));
+        Assert.AreEqual(1, store.Count);
+    }
+
+    [TestMethod]
+    public void Test_AOT_StaticFieldsDoNotChangeInstanceLayout()
+    {
+        CreateSchema();
+        var store = new EntityStore();
+        var entity = store.CreateEntity(new LayoutValidation.SoAWithStaticValue { value = new Vector2(11, 12) });
+        foreach (var (chunk, _) in store.Query<LayoutValidation.SoAWithStaticValue>().Chunks) {
+            Assert.AreEqual(new Vector2(11, 12), chunk.GetSoA(0).value);
+            chunk.SetSoA(0, new LayoutValidation.SoAWithStaticValue { value = new Vector2(21, 22) });
+        }
+        Assert.AreEqual(new Vector2(21, 22), entity.GetSoA<LayoutValidation.SoAWithStaticValue>().value);
+        var payload = new object();
+        var plain = store.CreateEntity(new LayoutValidation.PlainWithStaticValue { payload = payload });
+        Assert.AreSame(payload, plain.GetComponent<LayoutValidation.PlainWithStaticValue>().payload);
+    }
+
+    [TestMethod]
+    public void Test_AOT_PlainRelationChunk()
+    {
+        CreateSchema();
+        var store = new EntityStore();
+        var entity = store.CreateEntity();
+        entity.AddRelation(new LayoutValidation.PlainVectorRelation { value = new Vector2(11, 12) });
+        var (_, relations) = store.EntityRelations<LayoutValidation.PlainVectorRelation>().Pairs;
+        Assert.AreEqual(new Vector2(11, 12), relations[0].value);
+        relations[0].value.Y = 99;
+        Assert.AreEqual(new Vector2(11, 99), entity.GetRelation<LayoutValidation.PlainVectorRelation, float>(11).value);
     }
 
     [TestMethod]
@@ -363,6 +422,13 @@ public class Test_AOT
             aot.RegisterComponent<Tests.SoA.Test_ExplicitLayoutValidation.AoSoAInteger>();
             aot.RegisterComponent<Tests.SoA.Test_ExplicitLayoutValidation.AlignedInteger>();
 
+            aot.RegisterComponent<LayoutValidation.SoAStaticValue>();
+            aot.RegisterComponent<LayoutValidation.AoSoAStaticValue>();
+            aot.RegisterComponent<LayoutValidation.AlignedStaticValue>();
+            aot.RegisterComponent<LayoutValidation.SoAStaticUnmanagedValue>();
+            aot.RegisterComponent<LayoutValidation.SoAWithStaticValue>();
+            aot.RegisterComponent<LayoutValidation.PlainWithStaticValue>();
+
             aot.RegisterTag<TestTag>();
             aot.RegisterTag<TestTag>(); // register again
             
@@ -376,6 +442,10 @@ public class Test_AOT
             
             aot.RegisterRelation<InventoryItem, InventoryItemType>();
             aot.RegisterLinkRelation<AttackRelation>();
+            aot.RegisterRelation<LayoutValidation.SoARelation, float>();
+            aot.RegisterRelation<LayoutValidation.AoSoARelation, float>();
+            aot.RegisterRelation<LayoutValidation.AlignedRelation, float>();
+            aot.RegisterRelation<LayoutValidation.PlainVectorRelation, float>();
             
             return schemaCreated = aot.CreateSchema();
         }

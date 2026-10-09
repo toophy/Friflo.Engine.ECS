@@ -31,7 +31,7 @@ public struct EntityEvent
     /// <summary>The id of the changed entity.</summary>
     public      int                 Id;         //  4
 
-    private     ushort              typeIndex;  //  2
+    private     ushort              typeIndex;
     
     /// <summary>The change type - add / remove - of a component / tag. </summary>
     public      EntityEventAction   Action;     //  1
@@ -39,7 +39,6 @@ public struct EntityEvent
     /// <summary> The kind - component / tag - of the structural change. </summary>
     public      SchemaTypeKind      Kind;       //  1   - used only for ToString()
 
-    /// <summary> The index in <see cref="EntitySchema"/> properties <see cref="EntitySchema.Components"/> or <see cref="EntitySchema.Tags"/>. </summary>
     public int TypeIndex {
         readonly get => typeIndex;
         set => typeIndex = SchemaTypeIndex.ToUInt16(value, nameof(TypeIndex));
@@ -73,7 +72,7 @@ internal sealed class EntityEvents
 #region fields
     internal            EntityEvent[]           events;             //  8   - never null
     internal            int                     eventCount;         //  4   - number of recorded events
-    internal readonly   Dictionary<int, WideBitSet> entityChanges;      //  8   - never null
+    internal readonly   Dictionary<int, WideBitSet> entityChanges;
     internal            int                     entityChangesPos;   //  4   - last event in events[] added to entityChanges map
     #endregion
     

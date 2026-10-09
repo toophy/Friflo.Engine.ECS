@@ -91,7 +91,7 @@ internal abstract class StructHeap : IComponentStash
         int byteMisalignment = (int)(address & 31);
         simdOffset              = byteMisalignment == 0 ? 0 : (32 - byteMisalignment) / 4;
         Debug.Assert(((address + simdOffset * 4) & 31) == 0, "SIMD Alignment failed!");
-        return array; // array[simdOffset] points to the first 32-byte aligned element
+        return array;
 #else
         simdOffset = 0;
         return new float[capacity];

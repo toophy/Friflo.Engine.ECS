@@ -207,9 +207,6 @@ public sealed class EntitySchema
         return result;
     }
     
-    /// <remarks>
-    /// Ensures <see cref="StructHeap.structIndex"/> and <see cref="StructInfo{T}.Index"/> are less than <see cref="maxStructIndex"/>.
-    /// </remarks>
     internal int CheckStructIndex(Type structType, int structIndex)
     {
         if (structIndex >= maxStructIndex) {

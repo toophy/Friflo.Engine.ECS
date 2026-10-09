@@ -3,7 +3,6 @@
 
 namespace Friflo.Engine.ECS.Utils;
 
-/// <summary>A non-zero immutable 256 bit block above the inline range.</summary>
 internal readonly struct BitSetBlock
 {
     internal readonly byte Index;
