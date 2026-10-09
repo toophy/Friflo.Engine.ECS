@@ -20,7 +20,7 @@ internal sealed class EntityIndexValues : IReadOnlyCollection<Entity>
     }
 
     public IEnumerator<Entity> GetEnumerator() => new EntityIndexValuesEnumerator(entityIndex);
-    IEnumerator    IEnumerable.GetEnumerator() => throw new NotImplementedException();
+    IEnumerator    IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
 internal sealed class EntityIndexValuesEnumerator : IEnumerator<Entity>
@@ -39,7 +39,7 @@ internal sealed class EntityIndexValuesEnumerator : IEnumerator<Entity>
     // --- IEnumerator
     public  bool    MoveNext()          => enumerator.MoveNext();
     public  void    Reset()             => throw new NotImplementedException();
-            object  IEnumerator.Current => throw new NotImplementedException();
+            object  IEnumerator.Current => Current;
 
     // --- IEnumerator<>
     public  Entity  Current             => new Entity(store, enumerator.Current);

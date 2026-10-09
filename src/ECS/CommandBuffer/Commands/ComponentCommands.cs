@@ -138,9 +138,19 @@ internal sealed class ComponentCommands<T> : ComponentCommands, IComponentStash<
                 // case: RemoveComponent<>() was called after AddComponent<>() or SetComponent<>() on same entity
                 continue;
             }
+            bool updateIndex = StructInfo<T>.HasIndex &&
+                               EntityTypeTracking.GetOwnerTypes(playback.store, command.entityId).bitSet.Has(index);
+            if (updateIndex) {
+                heap.StashComponent(node.compIndex);
+            }
             ((StructHeap<T>)heap).SetComponent(node.compIndex, command.component);
             if (StructInfo<T>.HasIndex) {
-                heap.AddIndex(new Entity(playback.store, command.entityId, node.revision));
+                var entity = new Entity(playback.store, command.entityId, node.revision);
+                if (updateIndex) {
+                    heap.UpdateIndex(entity);
+                } else {
+                    heap.AddIndex(entity);
+                }
             }
         }
     }

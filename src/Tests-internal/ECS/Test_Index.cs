@@ -94,22 +94,22 @@ public static class Test_Index
     [Test]
     public static void Test_Index_EntityIndexValue()
     {
-        var store       = new EntityStore();
-        var componentType = EntityStore.GetEntitySchema().ComponentTypeByType[typeof(AttackComponent)];
-        var index       = new EntityIndex<AttackComponent>(store, componentType);
-        var values      = new EntityIndexValues(index) as IEnumerable;
-
-        Throws<NotImplementedException>(() => {
-            // ReSharper disable once NotDisposedResource
-            values.GetEnumerator();
-        });
-        IEnumerator e = new EntityIndexValuesEnumerator(index);
-        Throws<NotImplementedException>(() => {
-            _ = e.Current;
-        });
-        Throws<NotImplementedException>(() => {
-            e.Reset();
-        });
+        var store = new EntityStore();
+        var values = store.ComponentIndex<AttackComponent, Entity>().Values as IEnumerable;
+        var empty = values.GetEnumerator();
+        IsFalse(empty.MoveNext());
+        ((IDisposable)empty).Dispose();
+        var target = store.CreateEntity();
+        store.CreateEntity(new AttackComponent { target = target });
+        var enumerator = values.GetEnumerator();
+        try {
+            IsTrue(enumerator.MoveNext());
+            AreEqual(target, (Entity)enumerator.Current);
+            IsFalse(enumerator.MoveNext());
+            Throws<NotImplementedException>(() => enumerator.Reset());
+        } finally {
+            ((IDisposable)enumerator).Dispose();
+        }
     }
     
     [Test]
