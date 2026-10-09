@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 using System;
@@ -73,13 +73,13 @@ internal sealed class EntityEvents
 #region fields
     internal            EntityEvent[]           events;             //  8   - never null
     internal            int                     eventCount;         //  4   - number of recorded events
-    internal readonly   Dictionary<int, BitSet> entityChanges;      //  8   - never null
+    internal readonly   Dictionary<int, WideBitSet> entityChanges;      //  8   - never null
     internal            int                     entityChangesPos;   //  4   - last event in events[] added to entityChanges map
     #endregion
     
     internal EntityEvents() {
         events          = Array.Empty<EntityEvent>();
-        entityChanges   = new Dictionary<int, BitSet>();
+        entityChanges   = new Dictionary<int, WideBitSet>();
     }
     
     [ExcludeFromCodeCoverage]

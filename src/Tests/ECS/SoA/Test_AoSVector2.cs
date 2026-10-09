@@ -24,7 +24,7 @@ public static class Test_AoSVector2
         var entity1 = store.CreateEntity();
         var entity2 = store.CreateEntity();
         var entity3 = store.CreateEntity();
-        
+
         var pos1 = new Pos2 { value = new Vector2(11, 12) };
         var pos2 = new Pos2 { value = new Vector2(21, 22) };
         var pos3 = new Pos2 { value = new Vector2(31, 32) };
@@ -42,32 +42,31 @@ public static class Test_AoSVector2
                     break;
             }
         };
-        
+
         entity1.AddComponent(pos1);
         var result1 = entity1.GetComponent<Pos2>();
         AreEqual(result1.value, pos1.value);
-        
+
         entity2.AddComponent(pos2);
         var result2 = entity2.GetComponent<Pos2>();
         AreEqual(result2.value, pos2.value);
-        
+
         entity3.AddComponent(pos3);
         var result3 = entity3.GetComponent<Pos2>();
         AreEqual(result3.value, pos3.value);
-        
+
         entity1.RemoveComponent<Pos2>();
-        
+
         result2 = entity2.GetComponent<Pos2>();
         AreEqual(result2.value, pos2.value);
-        
+
         result3 = entity3.GetComponent<Pos2>();
         AreEqual(result3.value, pos3.value);
-        
+
         IsTrue(entity3.TryGetComponent(out Pos2 tryGet));
         AreEqual(tryGet.value, pos3.value);
     }
-    
-    /// Test <see cref="StructSoAVector4{T}.CopyComponentTo"/>
+
     [Test]
     public static void Test_AoSVector2_Add_Tag()
     {
@@ -78,16 +77,15 @@ public static class Test_AoSVector2
         var entity1 = store.CreateEntity(pos1);
         var entity2 = store.CreateEntity(pos2);
         var entity3 = store.CreateEntity(pos3);
-        
+
         entity1.AddTag<General.MyTag1>();
         entity2.AddTag<General.MyTag2>();
-        
+
         AreEqual(pos1.value, entity1.GetComponent<Pos2>().value);
         AreEqual(pos2.value, entity2.GetComponent<Pos2>().value);
         AreEqual(pos3.value, entity3.GetComponent<Pos2>().value);
     }
 
-    /// Test <see cref="StructSoAVector4{T}.ResizeComponents"/>
     [Test]
     public static void Test_AoSVector2_Check_ResizeComponents()
     {
@@ -143,45 +141,42 @@ public static class Test_AoSVector2
         }
         AreEqual(0, query.Count);
     }
-    
+
     [Test]
     public static void Test_AoSVector2_Entity_exceptions()
     {
         var store = new EntityStore();
         var entitySoA = store.CreateEntity(new Pos2());
         var entityAoS = store.CreateEntity(new Position());
-        
+
         var e = Throws<InvalidOperationException>(() => {
             entityAoS.GetSoA<Position>();
         });
         AreEqual("Component 'Position' is stored as AoS. GetSoA() requires SoA storage. Add [SoA] attribute or use GetComponent() instead.", e!.Message);
-        
+
         e = Throws<InvalidOperationException>(() => {
             entitySoA.GetSoA<Pos2>();
         });
         AreEqual("Component 'Pos2' is stored as AoS. GetSoA() requires AoSoA storage. Add attribute [AoSoA] or use GetComponent() instead.", e!.Message);
     }
-    
-    /// Test <see cref="StructSoAVector4{T}.Write"/>
-    /// Test <see cref="StructSoAVector4{T}.Read"/>
+
     [Test]
     public static void Test_AoSVector2_serialize()
     {
         var store = new EntityStore();
         var pos = new Pos2 { value = new Vector2(11, 12) };
         var entity = store.CreateEntity(pos);
-        
+
         EntityConverter converter = new EntityConverter();
         var dataEntity = converter.EntityToDataEntity(entity, null, false);
         AreEqual("{\"Pos2\":{\"value\":{\"X\":11,\"Y\":12}}}", dataEntity.components.ToString());
-        
+
         var targetStore = new EntityStore();
         var targetEntity = converter.DataEntityToEntity(dataEntity, targetStore, out var error);
         AreEqual(pos.value, targetEntity.GetComponent<Pos2>().value);
         IsNull(error);
     }
-    
-    /// Test <see cref="StructSoAVector4{T}.GetComponentMember"/>
+
     [Test]
     public static void Test_AoSVector2_GetEntityComponentMember()
     {
@@ -191,7 +186,7 @@ public static class Test_AoSVector2
         var componentType   = typeof(Pos2);
         var posInfo = MemberPath.Get(componentType, nameof(Pos2.value));
         IsTrue(EntityUtils.GetEntityComponentMember<Vector2>(entity, posInfo, out var vector3, out _));
-        
+
         AreEqual(new Vector2(11, 12),           vector3);
         AreEqual("value",                       posInfo.path);
         AreEqual("value",                       posInfo.name);
@@ -203,8 +198,7 @@ public static class Test_AoSVector2
         NotNull ("value",                       posInfo.memberInfo.Name);
         AreEqual("Pos2 value : Vector2",        posInfo.ToString());
     }
-    
-    /// Test <see cref="StructSoAVector4{T}.SetComponentMember"/>
+
     [Test]
     public static void Test_AoSVector2_SetEntityComponentMember()
     {
@@ -213,7 +207,7 @@ public static class Test_AoSVector2
         var entity = store.CreateEntity(pos);
         var componentType   = typeof(Pos2);
         var nameInfo = MemberPath.Get(componentType, nameof(Pos2.value));
-        
+
         var newPos = new Vector2(101, 102);
         OnMemberChanged<Pos2> handler = (ref Pos2 value, Entity entity1, string path, in Pos2 old) => {
             AreEqual(1,         entity1.Id);
@@ -225,23 +219,21 @@ public static class Test_AoSVector2
         var result = entity.GetComponent<Pos2>();
         AreEqual(newPos, result.value);
     }
-    
-    /// Test <see cref="StructSoAVector4{T}.CopyComponent"/>
+
     [Test]
     public static void Test_AoSVector2_CopyEntity()
     {
         var store       = new EntityStore();
         var pos         = new Pos2 { value = new Vector2(11, 12) };
         var srcEntity   = store.CreateEntity(pos);
-        
+
         var target  = new EntityStore();
         var targetEntity = target.CreateEntity();
         srcEntity.CopyEntity(targetEntity);
-        
+
         AreEqual(pos.value, targetEntity.GetComponent<Pos2>().value);
     }
-    
-    /// Test <see cref="StructSoAVector4{T}.SetBatchComponent"/>
+
     [Test]
     public static void Test_AoSVector2_Batch_CreateEntity()
     {
@@ -250,11 +242,10 @@ public static class Test_AoSVector2
         var pos = new Pos2 { value = new Vector2(11, 12) };
         batch.Add(pos);
         var entity = batch.CreateEntity();
-        
+
         AreEqual(pos.value, entity.GetComponent<Pos2>().value);
     }
-    
-    /// Test <see cref="StructSoAVector4{T}.GetComponentDebug"/>
+
     [Test]
     public static void Test_AoSVector2_GetEntityComponent()
     {
@@ -263,12 +254,11 @@ public static class Test_AoSVector2
         var entity = store.CreateEntity(pos);
         var schema          = EntityStore.GetEntitySchema();
         var componentType   = schema.ComponentTypeByType[typeof(Pos2)];
-        
+
         var result = (Pos2)EntityUtils.GetEntityComponent(entity, componentType);
         AreEqual(pos.value, result.value);
     }
-    
-    /// Test <see cref="StructSoAVector4{T}.SetComponentsDefault"/>
+
     [Test]
     public static void Test_AoSVector2_Archetype_CreateEntities()
     {
@@ -277,10 +267,10 @@ public static class Test_AoSVector2
         var entity1 = store.CreateEntity(pos);
         var entity2 = store.CreateEntity(pos);
         var archetype = entity1.Archetype;
-        
+
         entity1.DeleteEntity();
         entity2.DeleteEntity();
-        
+
         var entities = archetype.CreateEntities(2);
         foreach (var entity in entities) {
             AreEqual(new Vector2(), entity.GetComponent<Pos2>().value);

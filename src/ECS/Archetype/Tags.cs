@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 using System;
@@ -20,7 +20,7 @@ namespace Friflo.Engine.ECS;
 [DebuggerTypeProxy(typeof(TagsDebugView))]
 public struct Tags : IEnumerable<TagType>, IEquatable<Tags>
 {
-    internal            BitSet   bitSet;  // 40
+    internal            WideBitSet   bitSet;  // 40
     
     public readonly     TagsEnumerator  GetEnumerator()                         => new TagsEnumerator (this);
 
@@ -38,9 +38,14 @@ public struct Tags : IEnumerable<TagType>, IEquatable<Tags>
         bitSet.SetBit(type.TagIndex);
     }
     
-    public Tags(in BitSet value)
+    public Tags(in WideBitSet value)
     {
         bitSet = value;
+    }
+
+    public Tags(in BitSet value)
+    {
+        bitSet = new WideBitSet { l0 = value.l0, l1 = value.l1, l2 = value.l2, l3 = value.l3 };
     }
     
     // ----------------------------------------- read Tags -----------------------------------------
@@ -353,7 +358,7 @@ public struct Tags : IEnumerable<TagType>, IEquatable<Tags>
 /// </summary>
 public struct TagsEnumerator : IEnumerator<TagType>
 {
-    private                 BitSetEnumerator    bitSetEnumerator;   // 64
+    private                 WideBitSetEnumerator    bitSetEnumerator;   // 64
     private static readonly TagType[]           TagTypes = EntityStoreBase.Static.EntitySchema.tags;
 
     // --- IEnumerator
@@ -364,7 +369,7 @@ public struct TagsEnumerator : IEnumerator<TagType>
     public readonly TagType Current             => TagTypes[bitSetEnumerator.Current];
     
     internal TagsEnumerator(in Tags tags) {
-        bitSetEnumerator = new BitSetEnumerator(tags.bitSet);
+        bitSetEnumerator = new WideBitSetEnumerator(tags.bitSet);
     }
     
     // --- IEnumerator

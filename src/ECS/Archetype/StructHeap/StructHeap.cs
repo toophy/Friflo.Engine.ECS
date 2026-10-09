@@ -37,6 +37,7 @@ internal abstract class StructHeap : IComponentStash
     protected abstract  int         ComponentsLength        { get; }
     internal  abstract  void        ResizeComponents        (int capacity, int count);
     internal  abstract  void        MoveComponent           (int from, int to);
+    internal  virtual   void        ReleaseComponent        (int index) { }
     internal  abstract  void        CopyComponentTo         (int sourcePos, StructHeap targetHeap, int targetPos);
     internal  abstract  void        CopyComponent           (int sourcePos, StructHeap targetHeap, int targetPos, in CopyContext context, in ComponentTypes updateIndexTypes);
     internal  abstract  void        SetComponentDefault     (int compIndex);

@@ -121,7 +121,7 @@ A type initializer threw an exception. To determine which type, inspect the Inne
         schemaTypes.AddSchemaType(new AssemblyType(type, kind, assemblyIndex));
     }
     
-    public void RegisterComponent<T>() where T : struct, IComponent 
+    public void RegisterComponent<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>() where T : struct, IComponent
     {
         InitSchema();
         if (typeSet.Add(typeof(T))) {
@@ -130,7 +130,7 @@ A type initializer threw an exception. To determine which type, inspect the Inne
         }
     }
     
-    public void RegisterIndexedComponentClass<T, TValue>()
+    public void RegisterIndexedComponentClass<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T, TValue>()
         where T : struct, IIndexedComponent<TValue>
         where TValue : class
     {
@@ -146,7 +146,7 @@ A type initializer threw an exception. To determine which type, inspect the Inne
         }
     }
     
-    public void RegisterIndexedComponentStruct<T, TValue>()
+    public void RegisterIndexedComponentStruct<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T, TValue>()
         where T : struct, IIndexedComponent<TValue>
         where TValue : struct
     {
@@ -162,7 +162,7 @@ A type initializer threw an exception. To determine which type, inspect the Inne
         }
     }
     
-    public void RegisterIndexedComponentEntity<T>()
+    public void RegisterIndexedComponentEntity<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>()
         where T : struct, ILinkComponent
     {
         InitSchema();
@@ -177,7 +177,7 @@ A type initializer threw an exception. To determine which type, inspect the Inne
         }
     }
     
-    public void RegisterRelation<T, TKey>()
+    public void RegisterRelation<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T, TKey>()
         where T : struct, IRelation<TKey>
     {
         InitSchema();
@@ -192,7 +192,7 @@ A type initializer threw an exception. To determine which type, inspect the Inne
         }
     }
     
-    public void RegisterLinkRelation<T>()
+    public void RegisterLinkRelation<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>()
         where T : struct, ILinkRelation
     {
         InitSchema();

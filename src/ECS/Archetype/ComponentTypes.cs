@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 using System;
@@ -37,7 +37,7 @@ public struct ComponentTypes : IEnumerable<ComponentType>, IEquatable<ComponentT
     #endregion
     
 #region interal field
-    internal        BitSet  bitSet;     // 40
+    internal        WideBitSet  bitSet;     // 40
     #endregion
 
 #region enumerator    
@@ -456,7 +456,7 @@ public struct ComponentTypes : IEnumerable<ComponentType>, IEquatable<ComponentT
 
     internal static ComponentTypes Intersect(in ComponentTypes left, in ComponentTypes right)
     {
-        return new ComponentTypes { bitSet = BitSet.Intersect(left.bitSet, right.bitSet) };
+        return new ComponentTypes { bitSet = WideBitSet.Intersect(left.bitSet, right.bitSet) };
     }
 
     private string GetString() => AppendTo(new StringBuilder()).ToString();
@@ -486,7 +486,7 @@ public struct ComponentTypes : IEnumerable<ComponentType>, IEquatable<ComponentT
 /// </summary>
 public struct ComponentTypesEnumerator : IEnumerator<ComponentType>
 {
-    internal                BitSetEnumerator    bitSetEnumerator;   // 64
+    internal                WideBitSetEnumerator    bitSetEnumerator;   // 64
     
     private static readonly ComponentType[]     Components = EntityStoreBase.Static.EntitySchema.components;
 
@@ -498,7 +498,7 @@ public struct ComponentTypesEnumerator : IEnumerator<ComponentType>
     public readonly ComponentType   Current             => Components[bitSetEnumerator.Current];
     
     internal ComponentTypesEnumerator(in ComponentTypes componentTypes) {
-        bitSetEnumerator = new BitSetEnumerator(componentTypes.bitSet);
+        bitSetEnumerator = new WideBitSetEnumerator(componentTypes.bitSet);
     }
     
     // --- IEnumerator

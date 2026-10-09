@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 
@@ -56,7 +56,7 @@ public readonly struct  TagsChanged
     /// }
     /// </code>
     /// </remarks>
-    public              Tags        AddedTags   => new(BitSet.Added  (OldTags.bitSet, Tags.bitSet));
+    public              Tags        AddedTags   => new(WideBitSet.Added  (OldTags.bitSet, Tags.bitSet));
     
     /// <summary>The <see cref="ECS.Tags"/> removed from the <see cref="Entity"/>.</summary>
     /// <remarks>
@@ -75,10 +75,10 @@ public readonly struct  TagsChanged
     /// }
     /// </code>
     /// </remarks>
-    public              Tags        RemovedTags => new(BitSet.Removed(OldTags.bitSet, Tags.bitSet));
+    public              Tags        RemovedTags => new(WideBitSet.Removed(OldTags.bitSet, Tags.bitSet));
     
     /// <summary>The changed (removed / added) entity <see cref="ECS.Tags"/>.</summary>
-    public              Tags        ChangedTags => new(BitSet.Changed(OldTags.bitSet, Tags.bitSet));
+    public              Tags        ChangedTags => new(WideBitSet.Changed(OldTags.bitSet, Tags.bitSet));
     
     public override     string      ToString()  => GetString();
 

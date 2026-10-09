@@ -122,9 +122,9 @@ public static class Test_BitSet
     }
 
     [Test]
-    public static void Test_BitSet_Overflow_ValueSemantics()
+    public static void Test_WideBitSet_Overflow_ValueSemantics()
     {
-        var bits = new BitSet(new [] { 0, 255, 256, 257, 511, 512, 65_535 });
+        var bits = new WideBitSet(new [] { 0, 255, 256, 257, 511, 512, 65_535 });
         AreEqual(7, bits.GetBitCount());
         foreach (var index in new [] { 0, 255, 256, 257, 511, 512, 65_535 }) {
             IsTrue(bits.Has(index), $"missing bit: {index}");
@@ -150,11 +150,11 @@ public static class Test_BitSet
     }
 
     [Test]
-    public static void Test_BitSet_Overflow_Equality()
+    public static void Test_WideBitSet_Overflow_Equality()
     {
-        var left  = new BitSet(new [] { 1, 256, 1024, 65_535 });
-        var right = new BitSet(new [] { 1, 256, 1024, 65_535 });
-        var other = new BitSet(new [] { 1, 256, 1025, 65_535 });
+        var left  = new WideBitSet(new [] { 1, 256, 1024, 65_535 });
+        var right = new WideBitSet(new [] { 1, 256, 1024, 65_535 });
+        var other = new WideBitSet(new [] { 1, 256, 1025, 65_535 });
 
         IsTrue(left.Equals(right));
         IsTrue(left.Equals((object)right));

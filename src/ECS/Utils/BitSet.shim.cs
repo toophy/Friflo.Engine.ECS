@@ -1,26 +1,38 @@
 ﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
+
+// ReSharper disable ConvertToAutoProperty
 namespace Friflo.Engine.ECS.Utils;
 
 public partial struct BitSet
 {
-#if !NETCOREAPP3_0_OR_GREATER
-    private readonly bool InlineIsDefault() => (l0 | l1 | l2 | l3) == 0;
-
-    private readonly bool InlineEquals(in BitSet other)
-    {
-        return l0 == other.l0 && l1 == other.l1 && l2 == other.l2 && l3 == other.l3;
+#if! NETCOREAPP3_0_OR_GREATER
+    internal bool IsDefault() {
+        return l0 == 0 &&
+               l1 == 0 &&
+               l2 == 0 &&
+               l3 == 0;
     }
 
-    private readonly int InlineBitCount()
-    {
-        return NumberOfSetBits(l0) + NumberOfSetBits(l1) + NumberOfSetBits(l2) + NumberOfSetBits(l3);
+    internal bool Equals (in BitSet other) {
+        return l0 == other.l0 &&
+               l1 == other.l1 &&
+               l2 == other.l2 &&
+               l3 == other.l3;
+    }
+
+    public readonly int GetBitCount() {
+        return
+            NumberOfSetBits(l0) +
+            NumberOfSetBits(l1) +
+            NumberOfSetBits(l2) +
+            NumberOfSetBits(l3);
     }
 #endif
 
 #if !NET7_0_OR_GREATER
-    private readonly bool InlineHasAll(in BitSet bitSet)
+    public readonly bool HasAll(in BitSet bitSet)
     {
         return (l0 & bitSet.l0) == bitSet.l0 &&
                (l1 & bitSet.l1) == bitSet.l1 &&
@@ -28,39 +40,39 @@ public partial struct BitSet
                (l3 & bitSet.l3) == bitSet.l3;
     }
 
-    private readonly bool InlineHasAny(in BitSet bitSet)
+    public readonly bool HasAny(in BitSet bitSet)
     {
-        return ((l0 & bitSet.l0) | (l1 & bitSet.l1) | (l2 & bitSet.l2) | (l3 & bitSet.l3)) != 0;
+        return (l0 & bitSet.l0) != 0 ||
+               (l1 & bitSet.l1) != 0 ||
+               (l2 & bitSet.l2) != 0 ||
+               (l3 & bitSet.l3) != 0;
     }
 
-    private void InlineAdd(in BitSet right)
-    {
+
+    internal void Add (in BitSet right) {
         l0 |= right.l0;
         l1 |= right.l1;
         l2 |= right.l2;
         l3 |= right.l3;
     }
 
-    private void InlineRemove(in BitSet right)
-    {
+    internal void Remove (in BitSet right) {
         l0 &= ~right.l0;
         l1 &= ~right.l1;
         l2 &= ~right.l2;
         l3 &= ~right.l3;
     }
 
-    private static BitSet InlineAdded(in BitSet left, in BitSet right)
-    {
+    internal static BitSet Add (in BitSet left, in BitSet right) {
         return new BitSet {
-            l0 = ~left.l0 & right.l0,
-            l1 = ~left.l1 & right.l1,
-            l2 = ~left.l2 & right.l2,
-            l3 = ~left.l3 & right.l3,
+            l0 = left.l0 | right.l0,
+            l1 = left.l1 | right.l1,
+            l2 = left.l2 | right.l2,
+            l3 = left.l3 | right.l3,
         };
     }
 
-    private static BitSet InlineRemoved(in BitSet left, in BitSet right)
-    {
+    internal static BitSet Remove (in BitSet left, in BitSet right) {
         return new BitSet {
             l0 = left.l0 & ~right.l0,
             l1 = left.l1 & ~right.l1,
@@ -69,8 +81,25 @@ public partial struct BitSet
         };
     }
 
-    private static BitSet InlineChanged(in BitSet left, in BitSet right)
-    {
+    internal static BitSet Added (in BitSet left, in BitSet right) {
+        return new BitSet {
+            l0 = ~left.l0 & right.l0,
+            l1 = ~left.l1 & right.l1,
+            l2 = ~left.l2 & right.l2,
+            l3 = ~left.l3 & right.l3,
+        };
+    }
+
+    internal static BitSet Removed (in BitSet left, in BitSet right) {
+        return new BitSet {
+            l0 = left.l0 & ~right.l0,
+            l1 = left.l1 & ~right.l1,
+            l2 = left.l2 & ~right.l2,
+            l3 = left.l3 & ~right.l3,
+        };
+    }
+
+    internal static BitSet Changed (in BitSet left, in BitSet right) {
         return new BitSet {
             l0 = left.l0 ^ right.l0,
             l1 = left.l1 ^ right.l1,
@@ -79,8 +108,7 @@ public partial struct BitSet
         };
     }
 
-    private static BitSet InlineIntersect(in BitSet left, in BitSet right)
-    {
+    internal static BitSet Intersect (in BitSet left, in BitSet right) {
         return new BitSet {
             l0 = left.l0 & right.l0,
             l1 = left.l1 & right.l1,
@@ -90,27 +118,23 @@ public partial struct BitSet
     }
 #endif
 
-    internal static int NumberOfSetBits(long value)
+    internal static int NumberOfSetBits(long i)
     {
-        value -= (value >> 1) & 0x5555555555555555;
-        value = (value & 0x3333333333333333) + ((value >> 2) & 0x3333333333333333);
-        return (int)((((value + (value >> 4)) & 0x0F0F0F0F0F0F0F0F) * 0x0101010101010101) >> 56);
+        i -= ((i >> 1) & 0x5555555555555555);
+        i = (i & 0x3333333333333333) + ((i >> 2) & 0x3333333333333333);
+        return (int)((((i + (i >> 4)) & 0xF0F0F0F0F0F0F0F) * 0x101010101010101) >> 56);
     }
 
-    internal static int TrailingZeroCount(long value)
-    {
-        if (value == 0) return 64;
-        var count = 63;
-        var shifted = value << 32;
-        if (shifted != 0) { count -= 32; value = shifted; }
-        shifted = value << 16;
-        if (shifted != 0) { count -= 16; value = shifted; }
-        shifted = value << 8;
-        if (shifted != 0) { count -= 8; value = shifted; }
-        shifted = value << 4;
-        if (shifted != 0) { count -= 4; value = shifted; }
-        shifted = value << 2;
-        if (shifted != 0) { count -= 2; value = shifted; }
-        return count - (int)((value << 1) >>> 63);
+    internal static int TrailingZeroCount(long i) {
+        long y;
+        if (i == 0) return 64;
+        int n = 63;
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+        y = i << 32; if (y != 0) { n = n -32; i = y; }
+        y = i << 16; if (y != 0) { n = n -16; i = y; }
+        y = i << 8;  if (y != 0) { n = n - 8; i = y; }
+        y = i << 4;  if (y != 0) { n = n - 4; i = y; }
+        y = i << 2;  if (y != 0) { n = n - 2; i = y; }
+        return (int)(n - ((i << 1) >>> 63));
     }
 }

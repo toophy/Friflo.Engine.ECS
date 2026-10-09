@@ -48,9 +48,9 @@ public struct MyComponent6 : IComponent { public int b; }
 [ComponentKey("my7")]
 public struct MyComponent7 : IComponent { public int b; }
 
-public struct FloatComponent : IComponent { public float   value; } // Layout always AoS
-public struct Pos2           : IComponent { public Vector2 value; } // Layout always AoS
-public struct Pos4           : IComponent { public Vector4 value; } // Layout always AoS
+[AoSAligned] public struct FloatComponent : IComponent { public float   value; }
+[AoSAligned] public struct Pos2           : IComponent { public Vector2 value; }
+[AoSAligned] public struct Pos4           : IComponent { public Vector4 value; }
 
 [SoA] public struct Pos2SoA :  IComponent { public Vector2 value; }
 [SoA] public struct Pos3SoA :  IComponent { public Vector3 value; }

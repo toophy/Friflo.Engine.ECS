@@ -7,6 +7,9 @@ using System.Numerics;
 // ReSharper disable once CheckNamespace
 namespace Friflo.Engine.ECS;
 
+[AttributeUsage(AttributeTargets.Struct)]
+public sealed class AoSAlignedAttribute : Attribute { }
+
 /// <summary>
 /// Uses a tiled memory layout for internal storage of components types with a single <c>value</c> field of Type
 /// <see cref="Vector2"/>, <see cref="Vector3"/> or <see cref="Vector4"/>.<br/>

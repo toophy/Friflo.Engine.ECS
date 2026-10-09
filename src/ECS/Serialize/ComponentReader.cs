@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 using System;
@@ -295,8 +295,8 @@ internal sealed class ComponentReader
     /// <summary> Preserve components and tags present on passed <paramref name="type"/>. </summary>
     private static void Preserve(ArchetypeKey key, Archetype type, in ConvertOptions options)
     {
-        key.componentTypes.bitSet.Add(BitSet.Intersect(type.componentTypes.bitSet, options.preserveComponents.bitSet));
-        key.tags.          bitSet.Add(BitSet.Intersect(type.tags.          bitSet, options.preserveTags.      bitSet));
+        key.componentTypes.bitSet.Add(WideBitSet.Intersect(type.componentTypes.bitSet, options.preserveComponents.bitSet));
+        key.tags.          bitSet.Add(WideBitSet.Intersect(type.tags.          bitSet, options.preserveTags.      bitSet));
     }
     
     private static Archetype FindArchetype(ArchetypeKey searchKey, EntityStoreBase store)

@@ -5,7 +5,7 @@ using System;
 
 namespace Friflo.Engine.ECS.Utils;
 
-public partial struct BitSet
+public partial struct WideBitSet
 {
     private enum BlockOperation : byte
     {
@@ -21,7 +21,7 @@ public partial struct BitSet
         return InlineIsDefault() && overflow == null;
     }
 
-    public readonly bool Equals(BitSet other)
+    public readonly bool Equals(WideBitSet other)
     {
         return InlineEquals(other) && BlocksEqual(overflow, other.overflow);
     }
@@ -40,7 +40,7 @@ public partial struct BitSet
         return count;
     }
 
-    public readonly bool HasAll(in BitSet bitSet)
+    public readonly bool HasAll(in WideBitSet bitSet)
     {
         if (!InlineHasAll(bitSet)) return false;
         var required = bitSet.overflow;
@@ -59,7 +59,7 @@ public partial struct BitSet
         return true;
     }
 
-    public readonly bool HasAny(in BitSet bitSet)
+    public readonly bool HasAny(in WideBitSet bitSet)
     {
         if (InlineHasAny(bitSet)) return true;
         var left = overflow;
@@ -84,54 +84,54 @@ public partial struct BitSet
         return false;
     }
 
-    internal void Add(in BitSet right)
+    internal void Add(in WideBitSet right)
     {
         InlineAdd(right);
-        overflow = CombineBlocks(overflow, right.overflow, BlockOperation.Add);
+        if (right.overflow != null) overflow = CombineBlocks(overflow, right.overflow, BlockOperation.Add);
     }
 
-    internal void Remove(in BitSet right)
+    internal void Remove(in WideBitSet right)
     {
         InlineRemove(right);
-        overflow = CombineBlocks(overflow, right.overflow, BlockOperation.Remove);
+        if (right.overflow != null) overflow = CombineBlocks(overflow, right.overflow, BlockOperation.Remove);
     }
 
-    internal static BitSet Add(in BitSet left, in BitSet right)
+    internal static WideBitSet Add(in WideBitSet left, in WideBitSet right)
     {
         var result = left;
         result.Add(right);
         return result;
     }
 
-    internal static BitSet Remove(in BitSet left, in BitSet right)
+    internal static WideBitSet Remove(in WideBitSet left, in WideBitSet right)
     {
         var result = left;
         result.Remove(right);
         return result;
     }
 
-    internal static BitSet Added(in BitSet left, in BitSet right)
+    internal static WideBitSet Added(in WideBitSet left, in WideBitSet right)
     {
         var result = InlineAdded(left, right);
         result.overflow = CombineBlocks(left.overflow, right.overflow, BlockOperation.Added);
         return result;
     }
 
-    internal static BitSet Removed(in BitSet left, in BitSet right)
+    internal static WideBitSet Removed(in WideBitSet left, in WideBitSet right)
     {
         var result = InlineRemoved(left, right);
         result.overflow = CombineBlocks(left.overflow, right.overflow, BlockOperation.Remove);
         return result;
     }
 
-    internal static BitSet Changed(in BitSet left, in BitSet right)
+    internal static WideBitSet Changed(in WideBitSet left, in WideBitSet right)
     {
         var result = InlineChanged(left, right);
         result.overflow = CombineBlocks(left.overflow, right.overflow, BlockOperation.Changed);
         return result;
     }
 
-    internal static BitSet Intersect(in BitSet left, in BitSet right)
+    internal static WideBitSet Intersect(in WideBitSet left, in WideBitSet right)
     {
         var result = InlineIntersect(left, right);
         result.overflow = CombineBlocks(left.overflow, right.overflow, BlockOperation.Intersect);

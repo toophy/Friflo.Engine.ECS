@@ -1,90 +1,56 @@
 ﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
+
 namespace Friflo.Engine.ECS.Utils;
 
 public struct BitSetEnumerator
 {
-    private readonly long l0;
-    private readonly long l1;
-    private readonly long l2;
-    private readonly long l3;
-    private readonly BitSetBlock[] overflow;
+    private readonly    long    l0;
+    private readonly    long    l1;
+    private readonly    long    l2;
+    private readonly    long    l3;
 
-    private long word;
-    private int wordIndex;
-    private int overflowIndex;
-    private int blockBase;
-    private int current;
+    private             long    lng;
+    private             int     lngPos;
+    private             int     curPos;
 
-    internal BitSetEnumerator(in BitSet bitSet)
-    {
-        l0 = bitSet.l0;
-        l1 = bitSet.l1;
-        l2 = bitSet.l2;
-        l3 = bitSet.l3;
-        overflow = bitSet.GetOverflowBlocks();
-        word = l0;
-        wordIndex = 0;
-        overflowIndex = -1;
-        blockBase = 0;
-        current = 0;
+    internal BitSetEnumerator(in BitSet bitSet) {
+        l0  = bitSet.l0;
+        l1  = bitSet.l1;
+        l2  = bitSet.l2;
+        l3  = bitSet.l3;
+        lng = l0;
     }
 
-    /// <returns>The index of the current set bit.</returns>
-    public readonly int Current => current;
+    public readonly int Current => curPos;
 
-    public void Reset()
-    {
-        word = l0;
-        wordIndex = 0;
-        overflowIndex = -1;
-        blockBase = 0;
-        current = 0;
+    public void Reset() {
+        lng     = l0;
+        lngPos  = 0;
+        curPos  = 0;
     }
 
     public bool MoveNext()
     {
-        while (true) {
-            if (word != 0) {
+        while (true)
+        {
+            if (lng != 0) {
 #if NETCOREAPP3_0_OR_GREATER
-                var bitPosition = System.Numerics.BitOperations.TrailingZeroCount(word);
+                var bitPos  = System.Numerics.BitOperations.TrailingZeroCount(lng);
 #else
-                var bitPosition = BitSet.TrailingZeroCount(word);
+                var bitPos  = BitSet.TrailingZeroCount(lng);
 #endif
-                word ^= 1L << bitPosition;
-                current = blockBase + (wordIndex << 6) + bitPosition;
+                lng        ^= 1L << bitPos;
+                curPos      = (lngPos << 6) + bitPos;
                 return true;
             }
-            if (!MoveToNextWord()) return false;
+            switch (++lngPos) {
+                case 1:     lng = l1;   break;
+                case 2:     lng = l2;   break;
+                case 3:     lng = l3;   break;
+                default:    return false;
+            }
         }
-    }
-
-    private bool MoveToNextWord()
-    {
-        if (wordIndex < 3) {
-            wordIndex++;
-            word = GetCurrentWord(wordIndex);
-            return true;
-        }
-
-        var blocks = overflow;
-        if (blocks == null || overflowIndex + 1 >= blocks.Length) return false;
-        overflowIndex++;
-        wordIndex = 0;
-        blockBase = blocks[overflowIndex].Index << 8;
-        word = blocks[overflowIndex].L0;
-        return true;
-    }
-
-    private readonly long GetCurrentWord(int index)
-    {
-        if (overflowIndex >= 0) return overflow[overflowIndex].GetWord(index);
-        return index switch {
-            0 => l0,
-            1 => l1,
-            2 => l2,
-            _ => l3,
-        };
     }
 }

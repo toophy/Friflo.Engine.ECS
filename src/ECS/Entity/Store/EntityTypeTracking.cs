@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 using System.Collections.Generic;
@@ -79,9 +79,9 @@ internal static class EntityTypeTracking
         extension.linkedTypeOverflow?.Remove(entityId);
     }
 
-    private static ComponentTypes GetTypes(Dictionary<int, BitSet> overflowMap, int entityId, int inlineBits)
+    private static ComponentTypes GetTypes(Dictionary<int, WideBitSet> overflowMap, int entityId, int inlineBits)
     {
-        var bits = default(BitSet);
+        var bits = default(WideBitSet);
         if (overflowMap != null) {
             overflowMap.TryGetValue(entityId, out bits);
         }
@@ -89,15 +89,15 @@ internal static class EntityTypeTracking
         return new ComponentTypes { bitSet = bits };
     }
 
-    private static void SetOverflowBit(ref Dictionary<int, BitSet> overflowMap, int entityId, int typeIndex)
+    private static void SetOverflowBit(ref Dictionary<int, WideBitSet> overflowMap, int entityId, int typeIndex)
     {
-        overflowMap ??= new Dictionary<int, BitSet>();
+        overflowMap ??= new Dictionary<int, WideBitSet>();
         overflowMap.TryGetValue(entityId, out var bits);
         bits.SetBit(typeIndex);
         overflowMap[entityId] = bits;
     }
 
-    private static void ClearOverflowBit(Dictionary<int, BitSet> overflowMap, int entityId, int typeIndex)
+    private static void ClearOverflowBit(Dictionary<int, WideBitSet> overflowMap, int entityId, int typeIndex)
     {
         if (overflowMap == null || !overflowMap.TryGetValue(entityId, out var bits)) return;
         bits.ClearBit(typeIndex);

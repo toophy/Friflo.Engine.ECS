@@ -3,78 +3,87 @@
 
 #if NETCOREAPP3_0_OR_GREATER
     using System.Numerics;
-    using System.Runtime.Intrinsics;
 #endif
 
+
+// ReSharper disable ConvertToAutoProperty
 namespace Friflo.Engine.ECS.Utils;
+
 
 public partial struct BitSet
 {
 #if NETCOREAPP3_0_OR_GREATER
-    private readonly Vector256<long> InlineVector => Vector256.Create(l0, l1, l2, l3);
+    internal bool IsDefault() {
+        return value.Equals(default);
+    }
 
-    private readonly bool InlineIsDefault() => InlineVector.Equals(default);
+    internal bool Equals(in BitSet other) {
+        return value.Equals(other.value);
+    }
 
-    private readonly bool InlineEquals(in BitSet other) => InlineVector.Equals(other.InlineVector);
-
-    private readonly int InlineBitCount()
-    {
-        return BitOperations.PopCount((ulong)l0) +
-               BitOperations.PopCount((ulong)l1) +
-               BitOperations.PopCount((ulong)l2) +
-               BitOperations.PopCount((ulong)l3);
+    public readonly int GetBitCount() {
+        return
+            BitOperations.PopCount((ulong)l0) +
+            BitOperations.PopCount((ulong)l1) +
+            BitOperations.PopCount((ulong)l2) +
+            BitOperations.PopCount((ulong)l3);
     }
 #endif
 
 #if NET7_0_OR_GREATER
-    private readonly bool InlineHasAll(in BitSet bitSet)
+    public readonly bool HasAll(in BitSet bitSet)
     {
-        var right = bitSet.InlineVector;
-        return (InlineVector & right) == right;
+        return (value & bitSet.value) == bitSet.value;
     }
 
-    private readonly bool InlineHasAny(in BitSet bitSet) => !(InlineVector & bitSet.InlineVector).Equals(default);
-
-    private void InlineAdd(in BitSet right) => SetInlineVector(InlineVector | right.InlineVector);
-
-    private void InlineRemove(in BitSet right) => SetInlineVector(InlineVector & ~right.InlineVector);
-
-    private static BitSet InlineAdded(in BitSet left, in BitSet right)
+    public readonly bool HasAny(in BitSet bitSet)
     {
-        return FromInlineVector(~left.InlineVector & right.InlineVector);
+        return !(value & bitSet.value).Equals(default);
     }
 
-    private static BitSet InlineRemoved(in BitSet left, in BitSet right)
-    {
-        return FromInlineVector(left.InlineVector & ~right.InlineVector);
+    internal void Add (in BitSet right) {
+        value |= right.value;
     }
 
-    private static BitSet InlineChanged(in BitSet left, in BitSet right)
-    {
-        return FromInlineVector(left.InlineVector ^ right.InlineVector);
+    internal void Remove (in BitSet right) {
+        value &= ~right.value;
     }
 
-    private static BitSet InlineIntersect(in BitSet left, in BitSet right)
-    {
-        return FromInlineVector(left.InlineVector & right.InlineVector);
-    }
-
-    private void SetInlineVector(Vector256<long> value)
-    {
-        l0 = value.GetElement(0);
-        l1 = value.GetElement(1);
-        l2 = value.GetElement(2);
-        l3 = value.GetElement(3);
-    }
-
-    private static BitSet FromInlineVector(Vector256<long> value)
-    {
+    internal static BitSet Add (in BitSet left, in BitSet right) {
         return new BitSet {
-            l0 = value.GetElement(0),
-            l1 = value.GetElement(1),
-            l2 = value.GetElement(2),
-            l3 = value.GetElement(3),
+            value = left.value | right.value
+        };
+    }
+
+    internal static BitSet Remove (in BitSet left, in BitSet right) {
+        return new BitSet {
+            value = left.value & ~right.value
+         };
+    }
+
+    internal static BitSet Added (in BitSet left, in BitSet right) {
+        return new BitSet {
+            value = ~left.value & right.value
+        };
+    }
+
+    internal static BitSet Removed (in BitSet left, in BitSet right) {
+        return new BitSet {
+            value = left.value & ~right.value
+        };
+    }
+
+    internal static BitSet Changed (in BitSet left, in BitSet right) {
+        return new BitSet {
+            value = left.value ^ right.value
+        };
+    }
+
+    internal static BitSet Intersect (in BitSet left, in BitSet right) {
+        return new BitSet {
+            value = left.value & right.value
         };
     }
 #endif
+
 }

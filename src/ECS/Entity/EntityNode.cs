@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 using System;
@@ -46,10 +46,10 @@ public struct EntityNode
     public              NodeFlags       Flags       =>  archetype != null ? Created : default;
     
     /// <summary>Property only used to see inline component names encoded by <see cref="isOwner"/>. </summary>
-    internal            ComponentTypes  IsOwner     =>  new ComponentTypes{ bitSet = new BitSet { l0 = (uint)isOwner } };
+    internal            ComponentTypes  IsOwner     =>  new ComponentTypes{ bitSet = new WideBitSet { l0 = (uint)isOwner } };
     
     /// <summary>Property only used to see inline component names encoded by <see cref="isLinked"/>. </summary>
-    internal            ComponentTypes  IsLinked    =>  new ComponentTypes{ bitSet = new BitSet { l0 = (uint)isLinked } };
+    internal            ComponentTypes  IsLinked    =>  new ComponentTypes{ bitSet = new WideBitSet { l0 = (uint)isLinked } };
                     
     public   override   string          ToString()  => GetString();
     #endregion

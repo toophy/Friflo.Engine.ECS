@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using Friflo.Engine.ECS;
 using Tests.ECS;
 using Tests.ECS.Index;
@@ -14,6 +15,92 @@ namespace Tests.AOT.ECS {
 [TestClass]
 public class Test_AOT
 {
+    [TestMethod]
+    [DataRow(0)] [DataRow(1)] [DataRow(2)] [DataRow(3)] [DataRow(4)]
+    public void Test_AOT_UnsupportedExplicitLayouts(int shape)
+    {
+        CreateSchema();
+        switch (shape) {
+            case 0: AssertUnsupportedLayout<Tests.SoA.Test_ExplicitLayoutValidation.SoAScalar>("SoA"); break;
+            case 1: AssertUnsupportedLayout<Tests.SoA.Test_ExplicitLayoutValidation.AoSoAScalar>("AoSoA"); break;
+            case 2: AssertUnsupportedLayout<Tests.SoA.Test_ExplicitLayoutValidation.SoAInteger>("SoA"); break;
+            case 3: AssertUnsupportedLayout<Tests.SoA.Test_ExplicitLayoutValidation.AoSoAInteger>("AoSoA"); break;
+            case 4: AssertUnsupportedLayout<Tests.SoA.Test_ExplicitLayoutValidation.AlignedInteger>("aligned AoS"); break;
+        }
+    }
+
+    private static void AssertUnsupportedLayout<T>(string layout) where T : struct, IComponent
+    {
+        var store = new EntityStore();
+        var error = Assert.ThrowsException<TypeInitializationException>(() => store.CreateEntity(default(T))).GetBaseException();
+        Assert.IsInstanceOfType(error, typeof(ArgumentException));
+        StringAssert.Contains(error.Message, typeof(T).Name);
+        StringAssert.Contains(error.Message, layout + " storage");
+        Assert.AreEqual(0, store.Count);
+    }
+
+    [TestMethod]
+    public void Test_AOT_IndexedLayoutLifecycle()
+    {
+        CreateSchema();
+        var initial = new Tests.SoA.Test_LayoutRegression.IndexedSoAVector { value = new Vector2(11, 12) };
+        var replacement = new Tests.SoA.Test_LayoutRegression.IndexedSoAVector { value = new Vector2(21, 22) };
+        var store = new EntityStore();
+        var index = store.ComponentIndex<Tests.SoA.Test_LayoutRegression.IndexedSoAVector, Vector2>();
+        var entity = store.CreateEntity(initial);
+        Assert.AreEqual(1, index[initial.value].Count);
+        entity.Set(replacement);
+        Assert.AreEqual(0, index[initial.value].Count);
+        Assert.AreEqual(1, index[replacement.value].Count);
+        new EntityBatch().Add(initial).ApplyTo(entity);
+        entity.AddComponent(new Position(1, 2, 3));
+        var clone = entity.CloneEntity();
+        Assert.AreEqual(2, index[initial.value].Count);
+        clone.Set(replacement);
+        entity.CopyEntity(clone);
+        Assert.AreEqual(2, index[initial.value].Count);
+        Assert.AreEqual(0, index[replacement.value].Count);
+        clone.RemoveComponent<Tests.SoA.Test_LayoutRegression.IndexedSoAVector>();
+        entity.DeleteEntity();
+        Assert.AreEqual(0, index.Values.Count);
+    }
+
+    [TestMethod]
+    public void Test_AOT_ExplicitLayouts()
+    {
+        CreateSchema();
+        AssertLayout(new Pos2 { value = new Vector2(11, 12) }, new Pos2 { value = new Vector2(21, 22) }, 0);
+        AssertLayout(new Pos4 { value = new Vector4(11, 12, 13, 14) }, new Pos4 { value = new Vector4(21, 22, 23, 24) }, 0);
+        AssertLayout(new Pos2SoA { value = new Vector2(11, 12) }, new Pos2SoA { value = new Vector2(21, 22) }, 1);
+        AssertLayout(new Pos3SoA { value = new Vector3(11, 12, 13) }, new Pos3SoA { value = new Vector3(21, 22, 23) }, 1);
+        AssertLayout(new Pos4SoA { value = new Vector4(11, 12, 13, 14) }, new Pos4SoA { value = new Vector4(21, 22, 23, 24) }, 1);
+        AssertLayout(new Pos2AoSoA { value = new Vector2(11, 12) }, new Pos2AoSoA { value = new Vector2(21, 22) }, 2);
+        AssertLayout(new Pos3AoSoA { value = new Vector3(11, 12, 13) }, new Pos3AoSoA { value = new Vector3(21, 22, 23) }, 2);
+        AssertLayout(new Pos4AoSoA { value = new Vector4(11, 12, 13, 14) }, new Pos4AoSoA { value = new Vector4(21, 22, 23, 24) }, 2);
+    }
+
+    private static void AssertLayout<T>(T initial, T replacement, int layout) where T : struct, IComponent
+    {
+        var store = new EntityStore();
+        var first = store.CreateEntity(initial);
+        for (int n = 1; n < 513; n++) store.CreateEntity(initial);
+        foreach (var (chunk, entities) in store.Query<T>().Chunks) {
+            Assert.IsNull(chunk.ArchetypeComponents);
+            var value = layout == 0 ? chunk.GetComponentSpan()[512] : layout == 1 ? chunk.GetSoA(512) : chunk.GetAoSoA(512);
+            Assert.AreEqual(initial, value);
+            if (layout == 0) chunk.GetComponentSpan()[512] = replacement;
+            else if (layout == 1) chunk.SetSoA(512, replacement);
+            else chunk.SetAoSoA(512, replacement);
+            var entity = store.GetEntityById(entities[512]);
+            Assert.AreEqual(replacement, layout == 0 ? entity.GetComponent<T>() : entity.GetSoA<T>());
+        }
+        first.AddComponent(new Position(1, 2, 3));
+        var clone = first.CloneEntity();
+        Assert.AreEqual(initial, layout == 0 ? clone.GetComponent<T>() : clone.GetSoA<T>());
+        clone.Set(replacement);
+        Assert.AreEqual(replacement, layout == 0 ? clone.GetComponent<T>() : clone.GetSoA<T>());
+    }
+
     [TestMethod]
     public void Test_AOT_Setup()
     {
@@ -261,6 +348,21 @@ public class Test_AOT
             aot.RegisterComponent<MyComponent1>();
             aot.RegisterComponent<MyComponent1>(); // register again
 
+            aot.RegisterComponent<Pos2>();
+            aot.RegisterComponent<Pos4>();
+            aot.RegisterComponent<Pos2SoA>();
+            aot.RegisterComponent<Pos3SoA>();
+            aot.RegisterComponent<Pos4SoA>();
+            aot.RegisterComponent<Pos2AoSoA>();
+            aot.RegisterComponent<Pos3AoSoA>();
+            aot.RegisterComponent<Pos4AoSoA>();
+
+            aot.RegisterComponent<Tests.SoA.Test_ExplicitLayoutValidation.SoAScalar>();
+            aot.RegisterComponent<Tests.SoA.Test_ExplicitLayoutValidation.AoSoAScalar>();
+            aot.RegisterComponent<Tests.SoA.Test_ExplicitLayoutValidation.SoAInteger>();
+            aot.RegisterComponent<Tests.SoA.Test_ExplicitLayoutValidation.AoSoAInteger>();
+            aot.RegisterComponent<Tests.SoA.Test_ExplicitLayoutValidation.AlignedInteger>();
+
             aot.RegisterTag<TestTag>();
             aot.RegisterTag<TestTag>(); // register again
             
@@ -269,6 +371,7 @@ public class Test_AOT
             
             aot.RegisterIndexedComponentClass<Player, string>();
             aot.RegisterIndexedComponentStruct<IndexedInt, int>();
+            aot.RegisterIndexedComponentStruct<Tests.SoA.Test_LayoutRegression.IndexedSoAVector, Vector2>();
             aot.RegisterIndexedComponentEntity<AttackComponent>();
             
             aot.RegisterRelation<InventoryItem, InventoryItemType>();

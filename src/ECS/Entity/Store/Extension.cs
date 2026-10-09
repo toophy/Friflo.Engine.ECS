@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 using System;
@@ -55,8 +55,8 @@ internal partial struct StoreExtension
     
 #region component indices
     internal                        AbstractComponentIndex[]    indexMap;                   //  8   - map & its component indexes created on demand
-    internal                        Dictionary<int, BitSet>     ownerTypeOverflow;          //  8   - high indexed/relation type bits by entity id
-    internal                        Dictionary<int, BitSet>     linkedTypeOverflow;         //  8   - high incoming-link type bits by entity id
+    internal                        Dictionary<int, WideBitSet>     ownerTypeOverflow;          //  8   - high indexed/relation type bits by entity id
+    internal                        Dictionary<int, WideBitSet>     linkedTypeOverflow;         //  8   - high incoming-link type bits by entity id
     #endregion
     
 #region entity relations

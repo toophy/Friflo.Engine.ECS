@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 
@@ -78,7 +78,7 @@ public static partial class EntityExtensions
         var type    = entity.GetArchetype() ?? throw EntityStoreBase.EntityNullException(entity);
         // --- count link components
         var linkTypes   = new ComponentTypes {
-            bitSet = BitSet.Intersect(type.componentTypes.bitSet, schema.linkComponentTypes.bitSet)
+            bitSet = WideBitSet.Intersect(type.componentTypes.bitSet, schema.linkComponentTypes.bitSet)
         };
         // --- count relations components
         int count           = linkTypes.Count;

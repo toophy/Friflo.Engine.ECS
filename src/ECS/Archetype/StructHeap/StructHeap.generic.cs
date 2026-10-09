@@ -2,6 +2,7 @@
 // See LICENSE file in the project root for full license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using Friflo.Engine.ECS.Index;
 using Friflo.Json.Burst;
 using Friflo.Json.Fliox;
@@ -78,6 +79,12 @@ internal sealed class StructHeapGen<T> : StructHeap<T>
     internal override void MoveComponent(int from, int to)
     {
         components[to] = components[from];
+        ReleaseComponent(from);
+    }
+
+    internal override void ReleaseComponent(int index)
+    {
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) components[index] = default;
     }
     
     internal override void CopyComponentTo(int sourcePos, StructHeap target, int targetPos)

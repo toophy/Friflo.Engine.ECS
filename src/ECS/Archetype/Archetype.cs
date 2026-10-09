@@ -299,7 +299,7 @@ public sealed class Archetype
             entityIds[newIndex] = lastEntityId;
         }   // ReSharper disable once RedundantIfElseBlock
         else {
-            // --- case: newIndex is already the last entity => only decrement entityCount
+            foreach (var heap in arch.structHeaps) heap.ReleaseComponent(lastIndex);
         }
         arch.entityCount = lastIndex;  // remove last entity id
         if (!store.shrinkArchetypes || lastIndex > arch.memory.shrinkThreshold) {

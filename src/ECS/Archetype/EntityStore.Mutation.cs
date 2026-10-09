@@ -1,4 +1,4 @@
-﻿// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
+// Copyright (c) Ullrich Praetz - https://github.com/friflo. All rights reserved.
 // See LICENSE file in the project root for full license information.
 
 
@@ -118,7 +118,7 @@ public partial class EntityStoreBase
         }
         var arch        = archetype;
         var curTags     = arch.tags;
-        var newTags     = new Tags (BitSet.Add(curTags.bitSet, tags.bitSet));
+        var newTags     = new Tags (WideBitSet.Add(curTags.bitSet, tags.bitSet));
         if (newTags.bitSet.Equals(curTags.bitSet)) {
             return false;
         }
@@ -148,7 +148,7 @@ public partial class EntityStoreBase
         }
         var arch        = archetype;
         var curTags     = arch.tags;
-        var newTags     = new Tags (BitSet.Remove(curTags.bitSet, tags.bitSet));
+        var newTags     = new Tags (WideBitSet.Remove(curTags.bitSet, tags.bitSet));
         if (newTags.bitSet.Equals(curTags.bitSet)) {
             return false;
         }
